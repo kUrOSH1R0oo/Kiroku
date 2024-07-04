@@ -5,4 +5,3 @@ sudo apt install npm
 sudo npm init -y
 sudo npm install
 sudo reboot
-https://www.mediafire.com/file/jmgvmir2tnoqdtx/MIRA/file
