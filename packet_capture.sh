@@ -66,27 +66,25 @@ done
 # Function to perform real-time monitoring
 real_time_monitor() {
     echo "[*] Real-time monitoring on interface $interface..."
-    sudo tcpdump -i "$interface" -w temp_capture.pcap -n -l -q 2>/dev/null &
-    monitor_pid=$!
-    trap 'stop_monitoring' SIGINT
-    wait $monitor_pid
+    trap stop_monitoring SIGINT  # Set up SIGINT (Ctrl+C) handler
+    sudo tcpdump -i "$interface" -n -l -q 2>/dev/null | while IFS= read -r line; do
+        echo "$line"
+    done
 }
 
 # Function to stop monitoring and handle saving captured packets
 stop_monitoring() {
     echo -e "[*] \nStopping real-time monitoring..."
-    kill -2 $monitor_pid
-    wait $monitor_pid
     echo -n "[*] Do you want to save the captured packets to a pcap file? (y/n): "
     read save_choice
     if [ "$save_choice" == "y" ]; then
         echo -n "[*] Enter the filename to save the capture (default: capture.pcap): "
         read filename
         filename=${filename:-capture.pcap}
-        mv temp_capture.pcap "$filename"
+        sudo mv temp_capture.pcap "$filename"
         echo "[+] Capture saved to $filename."
     else
-        rm temp_capture.pcap
+        sudo rm temp_capture.pcap
         echo "[-] Capture discarded."
     fi
     exit 0
@@ -214,14 +212,14 @@ if $capture; then
     capture_traffic
 fi
 
-# Analyze captured traffic if requested
-if $analyze; then
-    analyze_traffic
+# Perform HTTP header analysis if requested
+if $http_analysis; then
+    http_header_analysis
 fi
 
-# Follow streams if requested
-if [[ ! -z "$follow_protocol" ]]; then
-    follow_streams_func
+# Perform traffic analysis if requested
+if $analyze; then
+    analyze_traffic
 fi
 
 # Perform real-time monitoring if requested
@@ -229,10 +227,4 @@ if $monitor; then
     real_time_monitor
 fi
 
-# Perform HTTP header analysis if requested
-if $http_analysis; then
-    http_header_analysis
-fi
-
 echo "[+] Script execution complete."
-
