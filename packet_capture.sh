@@ -63,40 +63,45 @@ while getopts ":i:d:p:f:a:mHcsP:MSo:F:h" opt; do
     esac
 done
 
-# Function to perform real-time monitoring
 real_time_monitor() {
     echo "[*] Real-time monitoring on interface $interface..."
     trap stop_monitoring SIGINT  # Set up SIGINT (Ctrl+C) handler
+
+    local capture_file=""
+    local tcpdump_pid=""
+
+    # Function to handle saving packets to a pcap file
+    stop_monitoring() {
+        echo -e "[*] \nStopping real-time monitoring..."
+        echo -n "[*] Do you want to save the captured packets to a pcap file? (y/n): "
+        read save_choice
+        if [ "$save_choice" == "y" ]; then
+            echo -n "[*] Enter the filename to save the capture (default: capture.pcap): "
+            read filename
+            capture_file=${filename:-capture.pcap}
+
+            # Save packets to pcap file using tcpdump
+            sudo tcpdump -r /dev/stdin -w "$capture_file" -i "$interface" -U -n -tttt -q 2>/dev/null &
+            tcpdump_pid=$!
+            echo "[+] Capture saved to $capture_file."
+        else
+            echo "[-] Capture discarded."
+        fi
+        exit 0
+    }
+
+    # Start tcpdump in the background, capturing packets and printing them in real-time
     sudo tcpdump -i "$interface" -n -l -q 2>/dev/null | while IFS= read -r line; do
         echo "$line"
-    done
+    done &
+
+    # Store the PID of the tcpdump process
+    tcpdump_pid=$!
+
+    # Wait for SIGINT (Ctrl+C) to trigger the stop_monitoring function
+    wait $tcpdump_pid
 }
 
-# Function to stop monitoring and handle saving captured packets
-stop_monitoring() {
-    echo -e "[*] \nStopping real-time monitoring..."
-    echo -n "[*] Do you want to save the captured packets to a pcap file? (y/n): "
-    read save_choice
-    if [ "$save_choice" == "y" ]; then
-        echo -n "[*] Enter the filename to save the capture (default: capture.pcap): "
-        read filename
-        filename=${filename:-capture.pcap}
-
-        # Find the PID of the tcpdump process
-        pid=$(ps aux | grep "tcpdump -i $interface" | grep -v grep | awk '{print $2}')
-
-        # Stop tcpdump process
-        sudo kill -SIGINT "$pid"
-        sleep 2
-
-        # Save packets to pcap file using tcpdump
-        sudo tcpdump -r /dev/stdin -w "$filename" -i "$interface" -U -n -tttt -q 2>/dev/null &
-        echo "[+] Capture saved to $filename."
-    else
-        echo "[-] Capture discarded."
-    fi
-    exit 0
-}
 # Function to perform HTTP header analysis
 http_header_analysis() {
     echo "[*] Performing HTTP header analysis on interface $interface..."
