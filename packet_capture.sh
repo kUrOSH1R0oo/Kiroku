@@ -2,8 +2,8 @@
 
 # Function to display usage instructions
 display_usage() {
-    echo "TSNIFF by veilwr4ith: A tcpdump and tshark powered packet analyzer."
-    echo "Usage: $0 [-i interface] [-d duration] [-p port] [-f filter] [-a <capture_file>] [-m] [-H] [-c] [-s] [-P protocol] [-M] [-S] [-o output_file] [-F protocol] [-h]"
+    echo "TSNIFF (by Veilwr4ith): a tcpdump and tshark Powered Packet Sniffer."
+    echo "Usage: $0 [-i interface] [-d duration] [-p port] [-f filter] [-a <capture_file>] [-m] [-H] [-c] [-s] [-P protocol] [-M] [-S] [-o output_file] [-F] [-h]"
     echo "Options:"
     echo "  -i interface   : Specify network interface (default: eth0)"
     echo "  -d duration    : Duration in seconds to capture traffic (default: 10)"
@@ -18,7 +18,7 @@ display_usage() {
     echo "  -M             : Extract metadata from pcap file"
     echo "  -S             : Perform statistical analysis on captured data"
     echo "  -o output_file : Save output to specified file"
-    echo "  -F protocol    : Follow streams for a specific protocol (e.g., tcp, udp, http)"
+    echo "  -F             : Follow streams (TCP, UDP, DHCP, etc.)"
     echo "  -h             : Display this help message"
     exit 1
 }
@@ -38,17 +38,18 @@ capture_file=""
 extract_metadata=false
 perform_stats=false
 output_file=""
-follow_protocol=""
+follow_streams=false
+monitor_pid=""
 
 # Parse command line options
-while getopts ":i:d:p:f:a:mHcsP:MSo:F:h" opt; do
+while getopts ":i:d:p:f:a:mHcsP:MSo:Fh" opt; do
     case $opt in
         i) interface="$OPTARG";;
         d) duration="$OPTARG";;
         p) port="$OPTARG";;
         f) filter="$OPTARG";;
         a) analyze=true; capture_file="$OPTARG";;
-        m) monitor=true;;
+        m) monitor_terminal=true;;
         H) http_analysis=true;;
         c) capture=true;;
         s) save_with_timestamp=true;;
@@ -56,12 +57,20 @@ while getopts ":i:d:p:f:a:mHcsP:MSo:F:h" opt; do
         M) extract_metadata=true;;
         S) perform_stats=true;;
         o) output_file="$OPTARG";;
-        F) follow_protocol="$OPTARG";;  # Set the follow protocol type
+        F) follow_streams=true;;
         h) display_usage;;
         \?) echo "[-] Invalid option: -$OPTARG" >&2; display_usage;;
         :) echo "[-] Option -$OPTARG requires an argument." >&2; display_usage;;
     esac
 done
+
+# Function to perform real-time monitoring
+real_time_monitor() {
+    echo "[*] Real-time monitoring..."
+    sudo tcpdump -i "$interface" -n -l -q 2>/dev/null | while IFS= read -r line; do
+        echo "$line"
+    done
+}
 
 # Function to perform HTTP header analysis
 http_header_analysis() {
@@ -109,14 +118,25 @@ follow_streams_func() {
 
 # Function to capture network traffic
 capture_traffic() {
-    echo "[*] Capturing network traffic on interface $interface for $duration seconds..."
-    if $save_with_timestamp; then
-        filename="capture_$(date +%Y%m%d_%H%M%S).pcap"
-        sudo tcpdump -i "$interface" -w "$filename" -G "$duration" -W 1 &> /dev/null &
+    echo "[*] Capturing network traffic on interface $interface..."
+    if $keep_capture; then
+        echo "[*] Capturing indefinitely. Press Ctrl+C to stop."
+        if $save_with_timestamp; then
+            sudo tcpdump -i "$interface" -w "capture_$(date +%Y%m%d_%H%M%S).pcap" -G 3600 -W 1 &> /dev/null &
+        else
+            sudo tcpdump -i "$interface" -w capture.pcap -G 3600 -W 1 &> /dev/null &
+        fi
+        wait $!
     else
-        sudo tcpdump -i "$interface" -w capture.pcap -G "$duration" -W 1 &> /dev/null &
+        echo "[*] Capturing for $duration seconds..."
+        if $save_with_timestamp; then
+            filename="capture_$(date +%Y%m%d_%H%M%S).pcap"
+            sudo tcpdump -i "$interface" -w "$filename" -G "$duration" -W 1 &> /dev/null &
+        else
+            sudo tcpdump -i "$interface" -w capture.pcap -G "$duration" -W 1 &> /dev/null &
+        fi
+        sleep "$duration"
     fi
-    sleep "$duration"
 }
 
 # Function to analyze captured traffic
@@ -180,62 +200,29 @@ analyze_traffic() {
     fi
 }
 
-# Function for real-time monitoring and saving packets
-real_time_monitor() {
-    echo "[*] Real-time monitoring on interface $interface..."
-    trap stop_monitoring SIGINT  # Set up SIGINT (Ctrl+C) handler
-
-    local capture_file=""
-
-    # Function to handle saving packets to a pcap file
-    stop_monitoring() {
-        echo -e "[*] \nStopping real-time monitoring..."
-        echo -n "[*] Do you want to save the captured packets to a pcap file? (y/n): "
-        read save_choice
-        if [ "$save_choice" == "y" ]; then
-            echo -n "[*] Enter the filename to save the capture (default: capture.pcap): "
-            read filename
-            capture_file=${filename:-capture.pcap}
-
-            # Stop tcpdump process
-            sudo pkill tcpdump
-
-            # Save packets to pcap file using tcpdump
-            sudo tcpdump -r /dev/stdin -w "$capture_file" -i "$interface" -U -n -tttt -q 2>/dev/null &
-            echo "[+] Capture saved to $capture_file."
-        else
-            echo "[-] Capture discarded."
-        fi
-        exit 0
-    }
-
-    # Start tcpdump in the background, capturing packets and printing them in real-time
-    sudo tcpdump -i "$interface" -n -l -q 2>/dev/null | while IFS= read -r line; do
-        echo "$line"
-    done &
-
-    # Wait for SIGINT (Ctrl+C) to trigger the stop_monitoring function
-    wait $!
-}
-
 # Perform capture if requested
 if $capture; then
     capture_traffic
 fi
 
-# Perform HTTP header analysis if requested
-if $http_analysis; then
-    http_header_analysis
-fi
-
-# Perform traffic analysis if requested
+# Analyze captured traffic if requested
 if $analyze; then
     analyze_traffic
 fi
 
-# Perform real-time monitoring if requested
+# Follow streams if requested
+if $follow_streams; then
+    follow_streams
+fi
+
+# Perform real-time monitoring and display to terminal if requested
 if $monitor; then
     real_time_monitor
+fi
+
+# Perform HTTP header analysis if requested
+if $http_analysis; then
+    http_header_analysis
 fi
 
 echo "[+] Script execution complete."
