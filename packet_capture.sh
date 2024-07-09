@@ -81,10 +81,11 @@ stop_monitoring() {
         echo -n "[*] Enter the filename to save the capture (default: capture.pcap): "
         read filename
         filename=${filename:-capture.pcap}
-        sudo mv temp_capture.pcap "$filename"
+        pid=$(ps aux | grep "tcpdump -i $interface" | grep -v grep | awk '{print $2}')
+        sudo kill -SIGINT "$pid"
+        sleep 2
         echo "[+] Capture saved to $filename."
     else
-        sudo rm temp_capture.pcap
         echo "[-] Capture discarded."
     fi
     exit 0
