@@ -157,12 +157,4 @@ if $http_analysis; then
     http_header_analysis
 fi
 
-# Cleanup captured file if capture was performed
-if $capture; then
-    if $save_with_timestamp && [[ -f "$filename" ]]; then
-        rm "$filename"
-    else
-        rm capture.pcap
-    fi
-    echo "Cleanup complete."
-fi
+echo "Script execution complete."
