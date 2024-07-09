@@ -63,45 +63,6 @@ while getopts ":i:d:p:f:a:mHcsP:MSo:F:h" opt; do
     esac
 done
 
-real_time_monitor() {
-    echo "[*] Real-time monitoring on interface $interface..."
-    trap stop_monitoring SIGINT  # Set up SIGINT (Ctrl+C) handler
-
-    local capture_file=""
-    local tcpdump_pid=""
-
-    # Function to handle saving packets to a pcap file
-    stop_monitoring() {
-        echo -e "[*] \nStopping real-time monitoring..."
-        echo -n "[*] Do you want to save the captured packets to a pcap file? (y/n): "
-        read save_choice
-        if [ "$save_choice" == "y" ]; then
-            echo -n "[*] Enter the filename to save the capture (default: capture.pcap): "
-            read filename
-            capture_file=${filename:-capture.pcap}
-
-            # Save packets to pcap file using tcpdump
-            sudo tcpdump -r /dev/stdin -w "$capture_file" -i "$interface" -U -n -tttt -q 2>/dev/null &
-            tcpdump_pid=$!
-            echo "[+] Capture saved to $capture_file."
-        else
-            echo "[-] Capture discarded."
-        fi
-        exit 0
-    }
-
-    # Start tcpdump in the background, capturing packets and printing them in real-time
-    sudo tcpdump -i "$interface" -n -l -q 2>/dev/null | while IFS= read -r line; do
-        echo "$line"
-    done &
-
-    # Store the PID of the tcpdump process
-    tcpdump_pid=$!
-
-    # Wait for SIGINT (Ctrl+C) to trigger the stop_monitoring function
-    wait $tcpdump_pid
-}
-
 # Function to perform HTTP header analysis
 http_header_analysis() {
     echo "[*] Performing HTTP header analysis on interface $interface..."
@@ -126,14 +87,14 @@ follow_streams_func() {
                     read command_to_execute
                     sudo tshark -r "$capture_file" -Y "udp.stream eq $command_to_execute" -x
                     ;;
-               	wlan)
+                wlan)
                     sudo tshark -r "$capture_file" -qz conv,wlan
                     echo "[-] No Streaming available for wlan."
                     ;;
-		        eth)
-		            sudo tshark -r "$capture_file" -qz conv,eth
+                eth)
+                    sudo tshark -r "$capture_file" -qz conv,eth
                     echo "[-] No Streaming available for eth."
-		            ;;
+                    ;;
                 *)
                     echo "[-] Unsupported protocol '$follow_protocol'. Supported protocols: tcp, udp, eth, wlan"
                     ;;
@@ -217,6 +178,44 @@ analyze_traffic() {
     else
         echo "[-] Error: Please provide a capture file with option -a."
     fi
+}
+
+# Function for real-time monitoring and saving packets
+real_time_monitor() {
+    echo "[*] Real-time monitoring on interface $interface..."
+    trap stop_monitoring SIGINT  # Set up SIGINT (Ctrl+C) handler
+
+    local capture_file=""
+
+    # Function to handle saving packets to a pcap file
+    stop_monitoring() {
+        echo -e "[*] \nStopping real-time monitoring..."
+        echo -n "[*] Do you want to save the captured packets to a pcap file? (y/n): "
+        read save_choice
+        if [ "$save_choice" == "y" ]; then
+            echo -n "[*] Enter the filename to save the capture (default: capture.pcap): "
+            read filename
+            capture_file=${filename:-capture.pcap}
+
+            # Stop tcpdump process
+            sudo pkill tcpdump
+
+            # Save packets to pcap file using tcpdump
+            sudo tcpdump -r /dev/stdin -w "$capture_file" -i "$interface" -U -n -tttt -q 2>/dev/null &
+            echo "[+] Capture saved to $capture_file."
+        else
+            echo "[-] Capture discarded."
+        fi
+        exit 0
+    }
+
+    # Start tcpdump in the background, capturing packets and printing them in real-time
+    sudo tcpdump -i "$interface" -n -l -q 2>/dev/null | while IFS= read -r line; do
+        echo "$line"
+    done &
+
+    # Wait for SIGINT (Ctrl+C) to trigger the stop_monitoring function
+    wait $!
 }
 
 # Perform capture if requested
