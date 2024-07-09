@@ -2,15 +2,8 @@
 
 # Function to display usage instructions
 display_usage() {
-    echo """
- _____  __      __ _____  ___  ___ 
-/__   \/ _\  /\ \ \\_   \/ __\/ __\
-  / /\/\ \  /  \/ / / /\/ _\ / _\  
- / /   _\ \/ /\  /\/ /_/ /  / /    
- \/    \__/\_\ \/\____/\/   \/     
-                Veilwr4ith
-    """
-    echo "Usage: $0 [-i interface] [-d duration] [-p port] [-f filter] [-a <capture_file>] [-m] [-H] [-c] [-s] [-P protocol] [-M] [-S] [-o output_file] [-F] [-h]"
+    echo "TSNIFF by veilwr4ith: A tcpdump and tshark powered packet analyzer."
+    echo "Usage: $0 [-i interface] [-d duration] [-p port] [-f filter] [-a <capture_file>] [-m] [-H] [-c] [-s] [-P protocol] [-M] [-S] [-o output_file] [-F protocol] [-h]"
     echo "Options:"
     echo "  -i interface   : Specify network interface (default: eth0)"
     echo "  -d duration    : Duration in seconds to capture traffic (default: 10)"
@@ -25,7 +18,7 @@ display_usage() {
     echo "  -M             : Extract metadata from pcap file"
     echo "  -S             : Perform statistical analysis on captured data"
     echo "  -o output_file : Save output to specified file"
-    echo "  -F             : Follow streams (TCP, UDP, DHCP, etc.)"
+    echo "  -F protocol    : Follow streams for a specific protocol (e.g., tcp, udp, http)"
     echo "  -h             : Display this help message"
     exit 1
 }
@@ -45,11 +38,10 @@ capture_file=""
 extract_metadata=false
 perform_stats=false
 output_file=""
-follow_streams=false
-monitor_pid=""
+follow_protocol=""
 
 # Parse command line options
-while getopts ":i:d:p:f:a:mHcsP:MSo:Fh" opt; do
+while getopts ":i:d:p:f:a:mHcsP:MSo:F:h" opt; do
     case $opt in
         i) interface="$OPTARG";;
         d) duration="$OPTARG";;
@@ -64,16 +56,16 @@ while getopts ":i:d:p:f:a:mHcsP:MSo:Fh" opt; do
         M) extract_metadata=true;;
         S) perform_stats=true;;
         o) output_file="$OPTARG";;
-        F) follow_streams=true;;
+        F) follow_protocol="$OPTARG";;  # Set the follow protocol type
         h) display_usage;;
-        \?) echo "Invalid option: -$OPTARG" >&2; display_usage;;
-        :) echo "Option -$OPTARG requires an argument." >&2; display_usage;;
+        \?) echo "[-] Invalid option: -$OPTARG" >&2; display_usage;;
+        :) echo "[-] Option -$OPTARG requires an argument." >&2; display_usage;;
     esac
 done
 
 # Function to perform real-time monitoring
 real_time_monitor() {
-    echo "Real-time monitoring on interface $interface..."
+    echo "[*] Real-time monitoring on interface $interface..."
     sudo tcpdump -i "$interface" -w temp_capture.pcap -n -l -q 2>/dev/null &
     monitor_pid=$!
     trap 'stop_monitoring' SIGINT
@@ -82,47 +74,71 @@ real_time_monitor() {
 
 # Function to stop monitoring and handle saving captured packets
 stop_monitoring() {
-    echo -e "\nStopping real-time monitoring..."
+    echo -e "[*] \nStopping real-time monitoring..."
     kill -2 $monitor_pid
     wait $monitor_pid
-    echo -n "Do you want to save the captured packets to a pcap file? (y/n): "
+    echo -n "[*] Do you want to save the captured packets to a pcap file? (y/n): "
     read save_choice
     if [ "$save_choice" == "y" ]; then
-        echo -n "Enter the filename to save the capture (default: capture.pcap): "
+        echo -n "[*] Enter the filename to save the capture (default: capture.pcap): "
         read filename
         filename=${filename:-capture.pcap}
         mv temp_capture.pcap "$filename"
-        echo "Capture saved to $filename."
+        echo "[+] Capture saved to $filename."
     else
         rm temp_capture.pcap
-        echo "Capture discarded."
+        echo "[-] Capture discarded."
     fi
     exit 0
 }
 
 # Function to perform HTTP header analysis
 http_header_analysis() {
-    echo "Performing HTTP header analysis on interface $interface..."
+    echo "[*] Performing HTTP header analysis on interface $interface..."
     sudo tcpdump -i "$interface" -A -s0 -l -n tcp port 80 2>/dev/null | grep -iE '^(GET|POST|HEAD)|^Host:|^Referer:|^User-Agent:'
 }
 
 # Function to follow streams
-follow_streams() {
+follow_streams_func() {
     if [[ -n "$capture_file" ]]; then
-        echo "Following streams in file: $capture_file..."
+        echo "[*] Following $follow_protocol streams in file: $capture_file..."
         if [[ -f "$capture_file" ]]; then
-            sudo tshark -r "$capture_file" -q -z follow,tcp,ascii -z follow,udp,ascii -z follow,http,ascii -z follow,dns,ascii -z follow,dhcp,ascii
+            case $follow_protocol in
+                tcp)
+                    sudo tshark -r "$capture_file" -qz conv,tcp
+                    echo -n "[*] Stream Number to follow: "
+                    read command_to_execute
+                    sudo tshark -r "$capture_file" -Y "tcp.stream eq $command_to_execute" -x
+                    ;;
+                udp)
+                    sudo tshark -r "$capture_file" -qz conv,udp
+                    echo -n "[*] Stream Number to follow: "
+                    read command_to_execute
+                    sudo tshark -r "$capture_file" -Y "udp.stream eq $command_to_execute" -x
+                    ;;
+               	wlan)
+                    sudo tshark -r "$capture_file" -qz conv,wlan
+                    echo "[-] No Streaming available for wlan."
+                    ;;
+		        eth)
+		            sudo tshark -r "$capture_file" -qz conv,eth
+                    echo "[-] No Streaming available for eth."
+		            ;;
+                *)
+                    echo "[-] Unsupported protocol '$follow_protocol'. Supported protocols: tcp, udp, eth, wlan"
+                    ;;
+            esac
         else
-            echo "Error: Provided capture file '$capture_file' not found."
+            echo "[-] Error: Provided capture file '$capture_file' not found."
         fi
     else
-        echo "Error: Please provide a capture file with option -a."
+        echo "[-] Error: Please provide a capture file with option -a."
     fi
 }
 
 # Function to capture network traffic
 capture_traffic() {
-    echo "Capturing network traffic on interface $interface for $duration seconds..."
+    echo "[*] Capturing network traffic on interface $interface for $duration seconds..."
     if $save_with_timestamp; then
         filename="capture_$(date +%Y%m%d_%H%M%S).pcap"
         sudo tcpdump -i "$interface" -w "$filename" -G "$duration" -W 1 &> /dev/null &
@@ -135,61 +151,61 @@ capture_traffic() {
 # Function to analyze captured traffic
 analyze_traffic() {
     if [[ -n "$capture_file" ]]; then
-        echo "Analyzing captured traffic from file: $capture_file..."
+        echo "[*] Analyzing captured traffic from file: $capture_file..."
         if [[ -f "$capture_file" ]]; then
             # Display total packets captured
             packet_count=$(sudo tcpdump -r "$capture_file" | wc -l)
-            echo "Total packets captured: $packet_count"
+            echo "[+] Total packets captured: $packet_count"
 
             # Display summary of captured packets
-            echo "Packet summary:"
+            echo "[+] Packet summary:"
             sudo tcpdump -r "$capture_file" | head -n 10  # Display first 10 packets as an example
 
             # Extract and display unique IP addresses
-            echo "Extracting unique IP addresses..."
+            echo "[*] Extracting unique IP addresses..."
             sudo tcpdump -r "$capture_file" | awk '{print $3}' | sort -u  # Display unique IP addresses
 
             # Additional analysis based on options (e.g., filter by port)
             if [[ ! -z "$port" ]]; then
-                echo "Filtering traffic by destination port $port..."
+                echo "[*] Filtering traffic by destination port $port..."
                 sudo tcpdump -r "$capture_file" "port $port"
             fi
 
             # Additional filter if specified
             if [[ ! -z "$filter" ]]; then
-                echo "Applying custom filter: $filter"
+                echo "[*] Applying custom filter: $filter"
                 sudo tcpdump -r "$capture_file" "$filter"
             fi
 
             # Protocol-specific analysis if specified
             if [[ ! -z "$protocol" ]]; then
-                echo "Analyzing traffic for protocol: $protocol"
+                echo "[*] Analyzing traffic for protocol: $protocol"
                 sudo tshark -r "$capture_file" -Y "$protocol"
             fi
 
             # Extract metadata if requested
             if $extract_metadata; then
-                echo "Extracting metadata from pcap file..."
+                echo "[*] Extracting metadata from pcap file..."
                 sudo tshark -r "$capture_file" -T fields -e frame.number -e frame.time -e ip.src -e ip.dst -e frame.len -e ip.proto -e _ws.col.Protocol | head -n 20
             fi
 
             # Perform statistical analysis if requested
             if $perform_stats; then
-                echo "Performing statistical analysis on captured data..."
+                echo "[*] Performing statistical analysis on captured data..."
                 sudo tshark -r "$capture_file" -q -z io,stat,1
             fi
 
             # Save output to file if specified
             if [[ ! -z "$output_file" ]]; then
-                echo "Saving output to file: $output_file"
+                echo "[*] Saving output to file: $output_file"
                 sudo tshark -r "$capture_file" > "$output_file"
             fi
 
         else
-            echo "Error: Provided capture file '$capture_file' not found."
+            echo "[-] Error: Provided capture file '$capture_file' not found."
         fi
     else
-        echo "Error: Please provide a capture file with option -a."
+        echo "[-] Error: Please provide a capture file with option -a."
     fi
 }
 
@@ -204,8 +220,8 @@ if $analyze; then
 fi
 
 # Follow streams if requested
-if $follow_streams; then
-    follow_streams
+if [[ ! -z "$follow_protocol" ]]; then
+    follow_streams_func
 fi
 
 # Perform real-time monitoring if requested
@@ -218,4 +234,5 @@ if $http_analysis; then
     http_header_analysis
 fi
 
-echo "Script execution complete."
+echo "[+] Script execution complete."
+
