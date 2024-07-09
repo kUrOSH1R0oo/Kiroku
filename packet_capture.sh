@@ -81,16 +81,22 @@ stop_monitoring() {
         echo -n "[*] Enter the filename to save the capture (default: capture.pcap): "
         read filename
         filename=${filename:-capture.pcap}
+
+        # Find the PID of the tcpdump process
         pid=$(ps aux | grep "tcpdump -i $interface" | grep -v grep | awk '{print $2}')
+
+        # Stop tcpdump process
         sudo kill -SIGINT "$pid"
         sleep 2
+
+        # Save packets to pcap file using tcpdump
+        sudo tcpdump -r /dev/stdin -w "$filename" -i "$interface" -U -n -tttt -q 2>/dev/null &
         echo "[+] Capture saved to $filename."
     else
         echo "[-] Capture discarded."
     fi
     exit 0
 }
-
 # Function to perform HTTP header analysis
 http_header_analysis() {
     echo "[*] Performing HTTP header analysis on interface $interface..."
