@@ -49,7 +49,7 @@ while getopts ":i:d:p:f:a:mHcsP:MSo:Fh" opt; do
         p) port="$OPTARG";;
         f) filter="$OPTARG";;
         a) analyze=true; capture_file="$OPTARG";;
-        m) monitor_terminal=true;;
+        m) monitor=true;;
         H) http_analysis=true;;
         c) capture=true;;
         s) save_with_timestamp=true;;
