@@ -37,7 +37,7 @@ Armagedon is a Python-based keylogger tool designed to capture keystrokes and se
 
 ## Disclaimer
 
-This tool is intended for educational and ethical hacking purposes only. Unauthorized use of this tool for illegal activities is strictly prohibited. GiraSec Solutions and the developers are not responsible for any misuse of this tool. Use it responsibly and within the bounds of the law.
+This tool is intended for educational and ethical hacking purposes only. Unauthorized use of this tool for illegal activities is strictly prohibited.
 
 ## Author
 
