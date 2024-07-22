@@ -1,8 +1,8 @@
 """
 ----------------------------------------------------
-This project is owned by GiraSec Solutions!
+This project is owned by VeilWr4ith!
 Never use it for illegal actions!!
-* Monstaboard 2024
+* Armagedon 2024
 ----------------------------------------------------
 """
 
