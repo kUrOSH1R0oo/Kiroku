@@ -1,6 +1,6 @@
 """
 ----------------------------------------------------
-This project is owned by VeilWr4ith!
+This project is owned by Zephyr!
 Never use it for illegal actions!!
 * Armagedon 2024
 ----------------------------------------------------
