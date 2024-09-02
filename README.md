@@ -1,6 +1,6 @@
-# Armagedon
+# Maori
 
-Armagedon is a Python-based keylogger tool designed to capture keystrokes and send them to a remote server at regular intervals. This tool is intended for ethical hacking and educational purposes only. Misuse of this tool for illegal activities is strictly prohibited.
+Maori is a Python-based keylogger tool designed to capture keystrokes and send them to a remote server at regular intervals. This tool is intended for ethical hacking and educational purposes only. Misuse of this tool for illegal activities is strictly prohibited.
 
 ## Features
 
@@ -12,7 +12,7 @@ Armagedon is a Python-based keylogger tool designed to capture keystrokes and se
 
 - **Clone the repository:**
   ```bash
-  git clone https://github.com/veilwr4ith/Armagedon
+  git clone https://github.com/z33phyr/Maori
   ```
 
 - **Install the necessary libraries:**
@@ -32,7 +32,7 @@ Armagedon is a Python-based keylogger tool designed to capture keystrokes and se
 
 - **On the victim device configure the script and run the script:**
   ```bash
-  python3 keylogger.py
+  python3 client.py
   ```
 
 ## Disclaimer
@@ -41,4 +41,4 @@ This tool is intended for educational and ethical hacking purposes only. Unautho
 
 ## Author
 
-Veilwr4ith
+Z33phyr
