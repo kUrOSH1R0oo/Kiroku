@@ -8,7 +8,7 @@
   ███ ▀███▄ ███    ███    ███ ███    ███   ███ ▀███▄ ███    ███
   ███   ▀█▀ █▀     ███    ███  ▀██████▀    ███   ▀█▀ ████████▀  (Server)
   ▀                ███    ███              ▀
-                                                   Zephyr
+                                                   Kuraiyume
 
 Pro Tip: Keep it clean, keep it covert. Always ensure your actions align with legal boundaries and ethical standards. Use responsibly, and stay sharp:>>
 =end
