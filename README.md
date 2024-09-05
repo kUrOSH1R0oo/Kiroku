@@ -36,4 +36,4 @@ This tool is intended for educational and ethical hacking purposes only. Unautho
 
 ## Author
 
-Z33phyr
+Kuraiyume
