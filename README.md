@@ -12,7 +12,7 @@ Kiroku keylogger designed to capture keystrokes and send them to a remote server
 
 - **Clone the repository:**
   ```bash
-  git clone https://github.com/z33phyr/Kiroku
+  git clone https://github.com/Kuraiyume/Kiroku
   ```
 
 - **Install the necessary libraries:**
