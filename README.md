@@ -73,6 +73,7 @@ Kiroku keylogger designed to capture keystrokes, clipboards, screenshots and sen
   *If you're building the executable on windows, you should turn off the Real-Time Protection in Windows Defender to avoid detection while building.*
 
 - **Once the conversion is done, you will see a dist folder that's where your executable lives. Now all you need to do is run the server on the attacker's machine and send the executable to the victim and wait for the victim to click it, once clicked, the payload will do its work.**
+  
   *Ensure all configurations made before the conversion are correct and match the attacker's machine setup.*
   
 ## Disclaimer
