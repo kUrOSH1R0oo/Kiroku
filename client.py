@@ -107,7 +107,7 @@ def capture_screenshot():
     screenshot = ImageGrab.grab() # Capture the screenshot
     # Enhance the screenshot
     enhancer = ImageEnhance.Brightness(screenshot)
-    screenshot = enhancer.enhance(2.5)  # Increase brightness by 50% (adjust as needed)
+    screenshot = enhancer.enhance(2.5)  # Increase brightness (adjust as needed)
     # Convert the screenshot to PNG format in memory
     buffer = io.BytesIO()
     screenshot.save(buffer, format="PNG")
