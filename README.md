@@ -61,7 +61,20 @@ Kiroku keylogger designed to capture keystrokes, clipboards, screenshots and sen
 
 - **Configure the payload before we turn it to executable, change the server IP, Port, and the time intervals (if needed).**
 
-- **Install PyInstaller
+- **We will use PyInstaller to convert our payload to a standalone executable (PyInstaller is included in the requirements.txt).**
+
+- **We will use the 'payload.spec' file to convert our payload to executable, but first, configure it on how your executable should be packed based on your requirements.**
+
+- **After Configuration, we will use PyInstaller along with the payload.spec to generate us an executable version of the payload:**
+  ```bash
+  pyinstaller payload.spec
+  ```
+  *Make sure to build the executable on the same OS as the target system to avoid compatibility issues due to architecture differences.*
+  *If you're building the executable on windows, you should turn off the Real-Time Protection in Windows Defender to avoid detection while building.*
+
+- **Once the conversion is done, you will see a dist folder that's where your executable lives. Now all you need to do is run the server on the attacker's machine and send the executable to the victim and wait for the victim to click it, once clicked, the payload will do its work.**
+  *Ensure all configurations made before the conversion are correct and match the attacker's machine setup.*
+  
 ## Disclaimer
 
 This tool is intended for educational and ethical hacking purposes only. Unauthorized use of this tool for illegal activities is strictly prohibited.
