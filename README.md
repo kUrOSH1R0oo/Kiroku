@@ -1,6 +1,6 @@
 # Kiroku Keylogger
 
-Kiroku keylogger designed to capture keystrokes and send them to a remote server at regular intervals. This tool is intended for ethical hacking and educational purposes only. Misuse of this tool for illegal activities is strictly prohibited.
+Kiroku keylogger designed to capture keystrokes, clipboards, screenshots and send them to a remote server at regular intervals. This tool is intended for ethical hacking and educational purposes only. Misuse of this tool for illegal activities is strictly prohibited.
 
 ## Features
 
