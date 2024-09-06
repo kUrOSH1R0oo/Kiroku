@@ -86,6 +86,10 @@ This tool is intended strictly for educational purposes and ethical hacking only
   
 Proceed with caution and integrity. Your actions reflect your respect for privacy and the law.
 
+## License
+
+- Kiroku is licensed under the GNU General Public License.
+
 ## Author
 
 - Kuraiyume
