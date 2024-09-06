@@ -15,6 +15,17 @@ Kiroku keylogger designed to capture keystrokes, clipboards, screenshots and sen
 - **Base64 Encoding**: Encodes screenshots in base64 format before transmission to reduce the payload size.
 - **Platform Compatibility**: Designed to work seamlessly on multiple platforms with minimal configuration changes.
 
+## Server Features
+
+- **Keystroke Logging**: Receives and logs keystrokes from the payload, saving them to a specified file.
+- **Clipboard Data Capture**: Captures clipboard content from the payload and saves it to a specified file. Optionally logs clipboard data based on user preference.
+- **Screenshot Handling**: Receives base64-encoded screenshots from the payload, decodes them, and saves them as PNG files in a specified directory.
+- **Victim IP Logging**: Logs the IP address of the victim alongside captured data to identify the source.
+- **JSON Parsing and Error Handling**: Parses incoming data in JSON format and handles errors like invalid JSON or server issues with detailed logging.
+- **Customizable Configuration**: Allows customization of the server port, file paths for saved keystrokes, clipboard data, and screenshot storage directory.
+- **Threaded Execution**: Handles incoming POST requests concurrently, ensuring smooth and efficient server performance.
+- **Logging**: Provides detailed logging of all activities, including received data, errors, and server operations.
+- **Session Persistence**: Automatically reconnects and continues sessions if the server is restarted while the payload is still running, ensuring uninterrupted data capture.
 
 ## Installation
 
@@ -26,7 +37,7 @@ Kiroku keylogger designed to capture keystrokes, clipboards, screenshots and sen
 - **Install the necessary libraries:**
   ```bash
   pip3 install -r requirements.txt
-
+  ```
 _ **On the attacker machine, run the server:**
   ```bash
   ruby server.rb
@@ -35,7 +46,7 @@ _ **On the attacker machine, run the server:**
 
 - **On the victim device configure the script and run the script:**
   ```bash
-  python3 client.py
+  python3 payload.py
   ```
 
 ## Disclaimer
