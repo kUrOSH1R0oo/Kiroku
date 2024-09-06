@@ -27,7 +27,7 @@ Kiroku keylogger designed to capture keystrokes, clipboards, screenshots and sen
 - **Logging**: Provides detailed logging of all activities, including received data, errors, and server operations.
 - **Session Persistence**: Automatically reconnects and continues sessions if the server is restarted while the payload is still running, ensuring uninterrupted data capture.
 
-## Installation
+## Installation && Usage
 
 - **Clone the repository:**
   ```bash
@@ -38,17 +38,30 @@ Kiroku keylogger designed to capture keystrokes, clipboards, screenshots and sen
   ```bash
   pip3 install -r requirements.txt
   ```
-_ **On the attacker machine, run the server:**
+  *You will need to install this in the victim's machine*
+  
+- **On the attacker machine, run the server:**
   ```bash
   ruby server.rb
   ```
   *If ruby is not installed, install it using 'sudo apt install ruby-full ruby'*
 
-- **On the victim device configure the script and run the script:**
+- **On the victim device configure the payload and run the script:**
   ```bash
   python3 payload.py
   ```
 
+## How to make the payload run without the need of Python Interpreter?
+
+- **You will need to install the required modules for the payload:**
+  ```bash
+  pip3 install -r requirements.txt
+  ```
+  *Ensure that all of the modules are installed!*
+
+- **Configure the payload before we turn it to executable, change the server IP, Port, and the time intervals (if needed).**
+
+- **Install PyInstaller
 ## Disclaimer
 
 This tool is intended for educational and ethical hacking purposes only. Unauthorized use of this tool for illegal activities is strictly prohibited.
