@@ -75,7 +75,12 @@ Kiroku Keylogger is a sophisticated tool designed to capture and monitor a wide 
 - **Once the conversion is done, you will see a dist folder that's where your executable lives. Now all you need to do is run the server on the attacker's machine and send the executable to the victim and wait for the victim to click it, once clicked, the payload will do its work.**
   
   *Ensure all configurations made before the conversion are correct and match the attacker's machine setup.*
-  
+
+- **If you want to make it persistent when you convert it to executable, you'll need to add a logic in the payload that can move itself to the windows registry when it's executable, Here's how you can do that:**
+  1. Import the winreg module to allow your payload to integrate with the registry:
+     ```python
+     import winreg
+     ```
 ## Warning
 
 This tool is intended strictly for educational purposes and ethical hacking only. Unauthorized use of this tool for malicious activities or without explicit consent is illegal and strictly prohibited.
