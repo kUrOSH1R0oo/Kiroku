@@ -131,7 +131,7 @@ class ServerGUI:
         self.log_frame = ttk.Frame(self.notebook)
         self.notebook.add(self.log_frame, text="Logs")
 
-        self.log_text = scrolledtext.ScrolledText(self.log_frame, width=90, height=30, wrap=tk.WORD, bg='white', fg='black')
+        self.log_text = scrolledtext.ScrolledText(self.log_frame, width=90, height=30, wrap=tk.WORD, bg='white', fg='white')
         self.log_text.pack(padx=10, pady=10, fill='both', expand=True)
         self.log_text.tag_configure("INFO", foreground="black")
         self.log_text.tag_configure("WARNING", foreground="orange")
