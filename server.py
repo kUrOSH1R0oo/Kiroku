@@ -30,14 +30,11 @@ class GUIHandler(logging.Handler):
         try:
             msg = self.format(record)
             level = record.levelname
-            if level == "INFO":
-                color = "black"
-            elif level == "ERROR":
+            color = "black"  # Default color for INFO
+            if level == "ERROR":
                 color = "red"
             elif level == "WARNING":
                 color = "orange"
-            else:
-                color = "black"
 
             # Insert the message with color formatting
             self.log_widget.insert(tk.END, msg + '\n', level)
@@ -108,6 +105,17 @@ def stop_flask():
         server.server_close()
         server = None
 
+# File paths and directories
+keystrokes_file_path = 'saved_keystrokes.txt'
+clipboard_file_path = 'saved_clipboard.txt'
+screenshots_dir = 'screenshots'
+
+# Create screenshots directory if it doesn't exist
+os.makedirs(screenshots_dir, exist_ok=True)
+
+# Flag for logging clipboard data
+show_clipboard_in_logs = True
+
 # GUI Setup
 class ServerGUI:
     def __init__(self, root):
@@ -123,7 +131,7 @@ class ServerGUI:
         self.log_frame = ttk.Frame(self.notebook)
         self.notebook.add(self.log_frame, text="Logs")
 
-        self.log_text = scrolledtext.ScrolledText(self.log_frame, width=90, height=30, wrap=tk.WORD, bg='black', fg='white')
+        self.log_text = scrolledtext.ScrolledText(self.log_frame, width=90, height=30, wrap=tk.WORD, bg='white', fg='black')
         self.log_text.pack(padx=10, pady=10, fill='both', expand=True)
         self.log_text.tag_configure("INFO", foreground="black")
         self.log_text.tag_configure("WARNING", foreground="orange")
