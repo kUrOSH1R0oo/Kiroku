@@ -103,9 +103,9 @@ Kiroku Keylogger is a sophisticated tool designed to capture and monitor a wide 
 
 This tool is intended strictly for educational purposes and ethical hacking only. Unauthorized use of this tool for malicious activities or without explicit consent is illegal and strictly prohibited.
 
-- Ethical Use Only: Ensure that you have proper authorization before deploying or using this tool. It is meant to help understand security vulnerabilities and improve defenses, not to invade privacy or engage in unlawful activities.
-- Legal Compliance: Be fully aware of and comply with all applicable laws and regulations in your jurisdiction. Misuse of this tool can result in severe legal consequences.
-- Responsibility: The creator of this tool does not condone or support illegal activities. Use this tool responsibly and ethically to advance your knowledge and skills in cybersecurity.
+- **Ethical Use Only:** Ensure that you have proper authorization before deploying or using this tool. It is meant to help understand security vulnerabilities and improve defenses, not to invade privacy or engage in unlawful activities.
+- **Legal Compliance:** Be fully aware of and comply with all applicable laws and regulations in your jurisdiction. Misuse of this tool can result in severe legal consequences.
+- **Responsibility:** The creator of this tool does not condone or support illegal activities. Use this tool responsibly and ethically to advance your knowledge and skills in cybersecurity.
   
 Proceed with caution and integrity. Your actions reflect your respect for privacy and the law.
 
