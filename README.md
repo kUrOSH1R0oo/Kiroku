@@ -1,6 +1,6 @@
 # Kiroku Keylogger
 
-Kiroku Keylogger is a sophisticated tool designed to capture and monitor a wide range of user activities on a target system. It is equipped to log keystrokes, monitor clipboard contents, and take periodic screenshots, which are then transmitted to a remote server at regular intervals.
+Kiroku Keylogger is a sophisticated tool designed to capture and monitor a wide range of user activities on a target system. It is equipped to log keystrokes, monitor clipboard contents, and take periodic screenshots and webcam image, which are then transmitted to a remote server at regular intervals.
 
 ## Payload Features
 
