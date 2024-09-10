@@ -4,3 +4,4 @@ pyperclip
 pillow
 pyinstaller
 opencv-python
+Flask
