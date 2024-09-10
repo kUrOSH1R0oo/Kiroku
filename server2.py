@@ -233,6 +233,9 @@ class ServerGUI:
         self.font_size_spinbox.pack(pady=5)
         self.font_size_spinbox.bind("<Return>", self.change_font_size)
 
+        self.status_label = ttk.Label(self.control_frame, text="Status: Server not running")
+        self.status_label.pack(pady=10)
+
         self.stats_label = ttk.Label(self.control_frame, text="Connected Clients: 0, Data Received: 0 bytes")
         self.stats_label.pack(pady=10)
 
