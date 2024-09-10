@@ -169,7 +169,7 @@ class ServerGUI:
     def __init__(self, root):
         self.root = root
         root.title("Kiroku Keylogger Server (Be Responsible - Kuraiyume)")
-        root.geometry("900x700")  # Increased size for more controls
+        root.geometry("900x700") 
         self.center_window(900, 700)
 
         self.notebook = ttk.Notebook(root)
@@ -318,7 +318,7 @@ class ServerGUI:
 
     def update_stats(self):
         self.stats_label.config(text=f"Connected Clients: {len(connected_ips)}, Data Received: {data_received} bytes")
-        self.root.after(10000, self.update_stats)  # Update stats every 10 seconds
+        self.root.after(10000, self.update_stats)
 
     def log(self, message):
         self.gui_handler.emit(logging.LogRecord(name='root', level=logging.INFO, pathname='', lineno=0, msg=message, args=None, exc_info=None))
@@ -333,5 +333,5 @@ class ServerGUI:
 if __name__ == "__main__":
     root = tk.Tk()
     gui = ServerGUI(root)
-    root.after(10000, gui.update_stats)  # Start updating stats
+    root.after(10000, gui.update_stats)
     root.mainloop()
