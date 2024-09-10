@@ -80,9 +80,10 @@ Kiroku Keylogger is a sophisticated tool designed to capture and monitor a wide 
   *Ensure all configurations made before the conversion are correct and match the attacker's machine setup.*
 
 - **If you want to make it persistent when you convert it to executable, you'll need to add a logic in the payload that can move itself to the windows registry when it's executable, Here's how you can do that:**
-  1. Import the winreg module to allow your payload to integrate with the registry:
+  1. Import the winreg and sys module to allow your payload to integrate with the registry and file system (sys):
      ```python
      import winreg
+     import sys
      ```
   2. Add this function:
      ```python
