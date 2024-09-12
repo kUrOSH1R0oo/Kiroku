@@ -108,6 +108,8 @@ Kiroku Keylogger is a sophisticated tool designed to capture and monitor a wide 
      if __name__ == "__main__":
          add_to_registry()
      ```
+
+- **If you want to make it persistent when you convert it to executable in Linux, you'll need to add a logic in the payload that can move deattach itself when it's executable, Here's how you can do that:**
      
 ## Warning
 
