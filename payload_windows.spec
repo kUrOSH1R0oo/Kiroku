@@ -2,7 +2,7 @@
 
 
 a = Analysis(
-    ['payload.py'],
+    ['payload_windows.py'],
     pathex=[],
     binaries=[],
     datas=[],
