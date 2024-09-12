@@ -76,8 +76,13 @@ Kiroku Keylogger is a sophisticated tool designed to capture and monitor a wide 
 
 - **After Configuration, we will use PyInstaller along with the payload.spec to generate us an executable version of the payload:**
   ```bash
-  pyinstaller payload.spec
+  pyinstaller payload_windows.spec
   ```
+  *If your target is Linux machine:*
+  ```bash
+  pyinstaller payload_linux.spec
+  ```
+  
   *Make sure to build the executable on the same OS as the target system to avoid compatibility issues due to architecture differences.*
   *If you're building the executable on windows, you should turn off the Real-Time Protection in Windows Defender to avoid detection while building.*
 
