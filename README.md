@@ -55,7 +55,7 @@ Kiroku Keylogger is a sophisticated tool designed to capture and monitor a wide 
   ```bash
   python3 payload_windows.py
   ```
-  - If your target is Linux machine:
+  *If your target is Linux machine:*
   ```bash
   python3 payload_linux.py
   ```
