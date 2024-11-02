@@ -10,6 +10,7 @@ Kiroku Keylogger is a sophisticated tool designed to capture and monitor a wide 
 - **Clipboard Monitoring**: Continuously monitors clipboard content, detecting changes and sending the updated data to the server.
 - **Screenshot Capture**: Takes screenshots at regular intervals and sends them to the server in a base64-encoded format.
 - **Webcam Image Capture**: Takes webcam image at regular intervals and sends them to the server in a base64-encoded format also. (Not Compatible with Linux so we removed it)
+- **Mouse Pointer Coordinate Capture**: Continuously monitors the position of the mouse pointer(cursor) based on Coordinates (x, y), detecting changes and sending the updated position to the server.
 - **Modifier Key Tracking**: Tracks the state of Ctrl, Alt, and Shift keys to accurately capture key combinations.
 - **Configurable Intervals**: Allows customization of the intervals for sending keystrokes, clipboard data, and screenshots.
 - **JSON Payloads**: Packages keystrokes, clipboard data, and screenshots into JSON format for server transmission.
@@ -21,9 +22,10 @@ Kiroku Keylogger is a sophisticated tool designed to capture and monitor a wide 
 ## Server Features
 
 - **Keystroke Logging**: Receives and logs keystrokes from the payload, saving them to a specified file.
-- **Clipboard Data Capture**: Captures clipboard content from the payload and saves it to a specified file. Optionally logs clipboard data based on user preference.
+- **Clipboard Data Logging**: Captures clipboard content from the payload and saves them to a specified file. 
 - **Screenshot Handling**: Receives base64-encoded screenshots from the payload, decodes them, and saves them as PNG files in a specified directory.
-- **Webcam handling**: Receives base64-encoded webcam images from the payload, decodes them, and saves them as a PNG files in a specified directory.
+- **Webcam Handling**: Receives base64-encoded webcam images from the payload, decodes them, and saves them as a PNG files in a specified directory.
+- **Mouse Pointer Coordinate Logging**: Captures mouse pointer coordinates from the payload and saves them to a specified file. 
 - **Victim IP Logging**: Logs the IP address of the victim alongside captured data to identify the source.
 - **JSON Parsing and Error Handling**: Parses incoming data in JSON format and handles errors like invalid JSON or server issues with detailed logging.
 - **Customizable Configuration**: Allows customization of the server port, file paths for saved keystrokes, clipboard data, and screenshot storage directory.
