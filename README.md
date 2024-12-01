@@ -132,4 +132,4 @@ Proceed with caution and integrity. Your actions reflect your respect for privac
 
 ## Author
 
-- Kuraiyume (A1SBERG)
+- Kuroshiro (A1SBERG)
